@@ -1,0 +1,50 @@
+\documentclass[12pt,a4paper]{report}
+
+% Iclusión de paquetes básicos
+\usepackage[utf8]{inputenc} % Paquete para lectura de acentos y simbolos.
+\usepackage[T1]{fontenc} % Paquete para exportar a PDF
+\usepackage[spanish]{babel} % Cambia el idioma al español
+\usepackage{graphicx} % Paqueta para la inserción de imagenes
+\usepackage{geometry} % Permite cambiar los márgenes de la página
+\usepackage{setspace} % Permite controlar el interlineado y espacios
+\usepackage{titling} % Permite mayor flexibilidad a la hora de hacer la portada.
+\usepackage{lmodern} % Fuente Latin Moderna
+
+% Configuración de márgenes
+\geometry{margin=2.5cm}
+
+% Datos del documento
+\newcommand{\universidad}{Universidad Politécnica de Madrid}
+\newcommand{\facultad}{Escuela Técnica Superior de Ingeniería y Diseño Industrial}
+\newcommand{\tituloTFG}{Estudio del aprendizaje por refuerzo en robótica y aplicación práctica en el proyecto Metatool}
+\newcommand{\autor}{Enrique de Antonio}
+\newcommand{\tutor}{Pfr. Miguel Hernando Gutierrez}
+\newcommand{\departamento}{Ingeniería Eléctrica, Automática y Física Aplicada}
+\newcommand{\lugar}{Madrid}
+\newcommand{\fecha}{febrero 2026}
+\newcommand{\LogoUPM}{imagenes/LogoUPM.png}
+\newcommand{\LogoETSIDI}{imagenes/LogoETSIDI.png}
+
+% Formato del documento
+    % Márgenes
+\geometry{a4paper, top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm}
+
+    % Interlineado
+\onehalfspacing % Interlineado de 1.5
+
+    % Sangría y espacio entre parrafos
+\setlength{\parindent}{1.25cm}
+\setlength{\parskip}{0.2cm}
+
+\includeonly{capitulos/Introduccion}
+
+% Inicio del documento
+\begin{document}
+
+% Portada
+\include{portada.tex}
+\tableofcontents
+\include{capitulos/Introduccion}
+
+\end{document}
+
