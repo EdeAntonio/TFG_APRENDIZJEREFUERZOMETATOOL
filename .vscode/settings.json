@@ -1,5 +1,23 @@
 {
     "editor.wordWrap": "on",
     "editor.wordWrapColumn": 80,
-    "editor.wrappingIndent": "same"
+    "editor.wrappingIndent": "same",
+    // Almacena los temporales en una carpeta llamada "build"
+    "latex-workshop.latex.outDir": "./build",
+
+    // Limpia los archivos auxiliares automáticamente después de compilar
+    "latex-workshop.latex.autoClean.run": "onBuilt",
+    "latex-workshop.latex.clean.fileTypes": [
+        "*.aux",
+        "*.bbl",
+        "*.blg",
+        "*.idx",
+        "*.ind",
+        "*.lof",
+        "*.lot",
+        "*.out",
+        "*.toc",
+        "*.log",
+        "*.synctex.gz"
+  ]
 }
