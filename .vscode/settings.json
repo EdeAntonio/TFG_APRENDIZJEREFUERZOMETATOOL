@@ -1,23 +1,74 @@
 {
-    "editor.wordWrap": "on",
-    "editor.wordWrapColumn": 80,
-    "editor.wrappingIndent": "same",
-    // Almacena los temporales en una carpeta llamada "build"
-    "latex-workshop.latex.outDir": "./build",
+  "editor.wordWrap": "on",
+  "editor.wordWrapColumn": 80,
+  "editor.wrappingIndent": "same",
+  // Almacena los temporales en una carpeta llamada "build"
+  "latex-workshop.latex.outDir": "./build",
 
-    // Limpia los archivos auxiliares automáticamente después de compilar
-    "latex-workshop.latex.autoClean.run": "onBuilt",
-    "latex-workshop.latex.clean.fileTypes": [
-        "*.aux",
-        "*.bbl",
-        "*.blg",
-        "*.idx",
-        "*.ind",
-        "*.lof",
-        "*.lot",
-        "*.out",
-        "*.toc",
-        "*.log",
-        "*.synctex.gz"
-  ]
+  // Limpia los archivos auxiliares automáticamente después de compilar
+  "latex-workshop.latex.autoClean.run": "onBuilt",
+  "latex-workshop.latex.clean.fileTypes": [
+    "*.aux",
+    "*.bbl",
+    "*.blg",
+    "*.idx",
+    "*.ind",
+    "*.lof",
+    "*.lot",
+    "*.out",
+    "*.toc",
+    "*.log",
+    "*.synctex.gz"
+  ],
+    // Activar el corrector ortográfico
+  "cSpell.enabled": true,
+
+  // Idiomas activos
+  "cSpell.language": "es,en",
+
+  // Ignorar comandos LaTeX en el corrector
+  "cSpell.ignoreRegExpList": [
+    "/\\\\[a-zA-Z]+\\{[^\\}]*\\}/g",  // ignora contenido dentro de comandos \command{...}
+    "/\\\\[a-zA-Z]+/g",               // ignora comandos simples \command
+    "/\\$[^$]*\\$/g"                  // ignora fórmulas matemáticas $...$
+  ],
+
+  // Extensiones de archivo donde revisar
+  "cSpell.enableFiletypes": ["latex", "plaintext"],
+
+  // Ignorar rutas innecesarias
+  "cSpell.ignorePaths": [
+    "build/**",
+    "out/**",
+    ".vscode/**",
+    ".git/**",
+    "node_modules/**",
+    "bibliografia/**"
+  ],
+
+  "cSpell.diagnosticLevel": "Warning",
+  "cSpell.words": [
+	"ETSIDI",
+	"Kinova",
+	"manejadores",
+	"Obélix",
+	"Robohabilis",
+	"ROMERIN",
+	"Virgilio"
+  ],
+
+  // Desactivar resaltado y autocompletado de palabras normales
+  "editor.occurrencesHighlight": "off",
+  "editor.wordBasedSuggestions": "off",
+  "editor.quickSuggestions": {
+      "other": true,
+      "comments": false,
+      "strings": false
+  },
+  "editor.suggestOnTriggerCharacters": true,
+
+  "latex-workshop.intellisense.citation.enabled": true,
+  "latex-workshop.intellisense.label.enabled": true,
+  "latex-workshop.intellisense.package.enabled": true,
+  "latex-workshop.intellisense.environment.enabled": true
 }

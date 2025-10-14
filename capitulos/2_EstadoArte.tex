@@ -1,0 +1,17 @@
+\chapter{Estado del arte del Aprendizaje por Refuerzo (RL) en robótica}
+
+\section{Introducción al RL aplicado a la robótica}
+El aprendizaje por refuerzo se puede entender como el ejercicio de un agente para encontrar la mejor ruta de acción dentro de un entorno para conseguir un objetivo o objetivos definidos. Este ejercicio se caracteriza por darse en un bucle cerrado, por no tener instrucciones definidas sobre como actuar y por una realimentación constante de una señal única por un tiempo prolongado de tiempo. Esto hace que el comportamiento del agente dependa enteramente del entorno definido, el cual engloba sus acciones, observaciones y valoraciones (recompensas). \cite{sutton_reinforcement_2020}
+
+El primer ejemplo del uso de esta disciplina en la robótica se remonta a 1992, donde métodos de aprendizaje por refuerzo se aplicaron en un robot basado en comportamiento, \emph{Obélix}. En este experimento se utilizaba un algoritmo basado en un entorno de aprendizaje por refuerzo para que dicho robot empujase una caja. \cite{mahadevan_automatic_1992}
+
+En la actualidad, el aprendizaje por refuerzo esta afianzado en la robótica como una disciplina de rápido desarrollo. Especialmente, la técnica de aprendizaje profundo, basada en la implementación del aprendizaje por refuerzo para crear redes neuronales profundas \cite{francois-lavet_introduction_2018}, ha tenido un gran resultado en estados con un gran número de dimensiones o altamente no lineales, donde otros métodos de control prueban ser muy ineficientes. Estos resultados se han mostrado en multitud de disciplinas dentro de este campo, locomoción, navegación, manipulación, etc. Además, se ha mostrado también su efectividad tanto en robots individuales como colaborativos. \cite{tang_deep_2024}
+
+A continuación, presentaremos distintos casos de éxitos para distintas disciplinas.
+
+\section{Aplicaciones en manipulación.}
+La manipulación se da cuando un robot altera su entorno a través de contacto selectivo \cite{mason_toward_2018}. La manipulación presenta un gran desafío para cualquier método de aprendizaje, debido a la gran cantidad de observaciones y acciones necesarias para llevar a cabo distintas tareas, las cuales pueden llegar a ser bastante elaboradas. Todo esto lleva a un gran coste computacional y a una elevada complejidad a la hora de simular físicas y espacios. Añadido a esto, el aprendizaje llevado al mundo real se vuelve lento e inseguro. A pesar de esto, los métodos de aprendizaje por refuerzo profundo han tenido bastante éxito dentro de esta disciplina. \cite{tang_deep_2024}
+
+
+
+

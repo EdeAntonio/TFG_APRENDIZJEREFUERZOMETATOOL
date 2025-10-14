@@ -1,14 +1,15 @@
 \documentclass[12pt,a4paper]{report}
 
-% Iclusión de paquetes básicos
-\usepackage[utf8]{inputenc} % Paquete para lectura de acentos y simbolos.
+% Inclusión de paquetes básicos
+\usepackage[utf8]{inputenc} % Paquete para lectura de acentos y símbolos.
 \usepackage[T1]{fontenc} % Paquete para exportar a PDF
 \usepackage[spanish]{babel} % Cambia el idioma al español
-\usepackage{graphicx} % Paqueta para la inserción de imagenes
+\usepackage{graphicx} % Paquete para la inserción de imágenes
 \usepackage{geometry} % Permite cambiar los márgenes de la página
 \usepackage{setspace} % Permite controlar el interlineado y espacios
 \usepackage{titling} % Permite mayor flexibilidad a la hora de hacer la portada.
 \usepackage{lmodern} % Fuente Latin Moderna
+\usepackage{cite} % Paquete para citas
 
 % Configuración de márgenes
 \geometry{margin=2.5cm}
@@ -32,11 +33,12 @@
     % Interlineado
 \onehalfspacing % Interlineado de 1.5
 
-    % Sangría y espacio entre parrafos
+    % Sangría y espacio entre párrafos
 \setlength{\parindent}{1.25cm}
 \setlength{\parskip}{0.2cm}
 
-\includeonly{capitulos/2_EstadoArte}
+    % Formato de citas
+
 
 % Inicio del documento
 \begin{document}
@@ -46,6 +48,9 @@
 \tableofcontents
 \include{capitulos/1_Introduccion}
 \include{capitulos/2_EstadoArte}
+
+\bibliographystyle{unsrt}
+\bibliography{bibliografia/citas}
 
 \end{document}
 
