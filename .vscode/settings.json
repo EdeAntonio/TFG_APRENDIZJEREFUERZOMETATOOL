@@ -48,13 +48,14 @@
 
   "cSpell.diagnosticLevel": "Warning",
   "cSpell.words": [
-	"ETSIDI",
-	"Kinova",
-	"manejadores",
-	"Obélix",
-	"Robohabilis",
-	"ROMERIN",
-	"Virgilio"
+    "ETSIDI",
+    "Kinova",
+    "manejadores",
+    "multimodales",
+    "Obélix",
+    "Robohabilis",
+    "ROMERIN",
+    "Virgilio"
   ],
 
   // Desactivar resaltado y autocompletado de palabras normales
@@ -70,5 +71,8 @@
   "latex-workshop.intellisense.citation.enabled": true,
   "latex-workshop.intellisense.label.enabled": true,
   "latex-workshop.intellisense.package.enabled": true,
-  "latex-workshop.intellisense.environment.enabled": true
+  "latex-workshop.intellisense.environment.enabled": true,
+
 }
+
+
