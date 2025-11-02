@@ -4,28 +4,25 @@
   "editor.wrappingIndent": "same",
   // Almacena los temporales en una carpeta llamada "build"
   "latex-workshop.latex.outDir": "./build",
-  "latex-workshop.latex.outDir.pdf": "./",
 
   // Limpia los archivos auxiliares automáticamente después de compilar
   "latex-workshop.latex.autoClean.run": "onBuilt",
   "latex-workshop.latex.clean.fileTypes": [
-    "*.aux",
-    "*.bbl",
-    "*.blg",
-    "*.idx",
-    "*.ind",
-    "*.lof",
-    "*.lot",
-    "*.out",
-    "*.toc",
-    "*.log",
-    "*.synctex.gz"
+    "./build/*.aux",
+    "./build/capitulos/*.aux",
+    "./build/*.bbl",
+    "./build/*.blg",
+    "./build/*.idx",
+    "./build/*.ind",
+    "./build/*.lof",
+    "./build/*.lot",
+    "./build/*.out",
+    "./build/*.toc",
+    "./build/*.log",
+    "./build/*.synctex.gz"
   ],
 
-  // 🔹 Limpieza completa de la carpeta build al ejecutar "Clean up"
-  "latex-workshop.latex.clean.subfolder.enabled": true,
-  "latex-workshop.latex.clean.command": "rmdir /s /q build",
-    // Activar el corrector ortográfico
+  // Activar el corrector ortográfico
   "cSpell.enabled": true,
 
   // Idiomas activos
@@ -77,7 +74,4 @@
   "latex-workshop.intellisense.label.enabled": true,
   "latex-workshop.intellisense.package.enabled": true,
   "latex-workshop.intellisense.environment.enabled": true,
-
 }
-
-

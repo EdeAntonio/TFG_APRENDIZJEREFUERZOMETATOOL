@@ -1,5 +1,6 @@
 \chapter{Fundamentos teóricos del Aprendizaje por Refuerzo}
 
+\section{El Aprendizaje por Refuerzo dentro del Aprendizaje Automático}
 El aprendizaje por refuerzo pertenece a una disciplina más grande, el aprendizaje automático. Esta disciplina agrupa todos los ejercicios en los que una máquina aprende acerca de un entorno. Se dice que un programa aprende cuando de una experiencia, respecto a una tarea y una medida de éxito, si su rendimiento en dicha tarea mejora con la experiencia, en función de la medida seleccionada \cite[Pág. 1]{mitchell_machine_1997}.
 
 Esta disciplina tiene tres grandes ramas: el aprendizaje supervisado, el aprendizaje no supervisado y el aprendizaje por refuerzo. 
@@ -8,6 +9,17 @@ El aprendizaje supervisado usa pares de entradas y salidas conocidos para genera
 
 El aprendizaje no supervisado, por otro lado, utiliza directamente las entradas, sin una salida asociada \cite[pág 740]{russell2021ia}. Esto hace que el programa deba buscar patrones lógicos inherentes a su clasificación. Estos patrones se basan en características a estudiar \cite[Pág. 142]{Goodfellow-et-al-2016}. Un problema de aprendizaje no supervisado podría ser agrupar imágenes de animales en función de su especie. Es este caso, se alimenta al programa solo con las imágenes. Siguiendo únicamente la composición de los animales mostrados, deberá agruparlos. 
 
-La frontera entre ambas disciplinas puede resultar difusa. No existe una diferencia formal entre ambas, pues la diferencia entre una característica a estudiar y una salida asociada no es absoluta \cite[Pág 142]{Goodfellow}. El aprendizaje por refuerzo se diferencia de ambas a través de una única señal de realimentación (acorde a la definición presentada en el apartado 2.1.). De este modo, esta disciplina combina la supervisión del aprendizaje supervisado, con la ventaja de no requerir una gran base de datos catalogada. Gracias a esto, se puede realizar un aprendizaje secuencial sin disponer de un modelo del entorno, lo que la hace especialmente útil para el estudio de la robótica.
+La frontera entre ambas disciplinas puede resultar difusa. No existe una diferencia formal entre ambas, pues la diferencia entre una característica a estudiar y una salida asociada no es absoluta \cite[Pág 142]{Goodfellow-et-al-2016}. El aprendizaje por refuerzo se diferencia de ambas a través de una única señal de realimentación (acorde a la definición presentada en el apartado 2.1.). De este modo, esta disciplina combina la supervisión del aprendizaje supervisado, con la ventaja de no requerir una gran base de datos catalogada. Gracias a esto, se puede realizar un aprendizaje secuencial sin disponer de un modelo del entorno, lo que la hace especialmente útil para el estudio de la robótica.
 
-\section{Estructura del RL}
+\section{Estructura del Aprendizaje por Refuerzo}
+
+El aprendizaje por refuerzo esta definido por una estructura básica. Esta estructura viene de la formalización del problema como un Proceso de Decisión Markov (MDP) \cite[Pág. 47]{sutton_reinforcement_2020}. Esto proviene de la propia naturaleza del problema, por lo que existe ligada al Aprendizaje por Refuerzo. En el próximo apartado, se estudiarán a fondo los MDPs. Sin embargo, al ser la estructura la base de esta disciplina, se presenta primero.
+
+La estructura del aprendizaje por refuerzo define las interacciones entre un agente y un entorno. El agente ejerce acciones sobre el entorno, influyendo en el activamente. El entorno aporta al agente observaciones y recompensas, obteniendo así información sobre él. Además, el entorno, tiene asociado un estado. \ref{fig:agente_entorno}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imagenes/StructRL.pdf}
+    \caption{Interacción agente–entorno.}
+    \label{fig:agente_entorno}
+\end{figure}
