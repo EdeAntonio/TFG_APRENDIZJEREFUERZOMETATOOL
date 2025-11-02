@@ -4,6 +4,7 @@
   "editor.wrappingIndent": "same",
   // Almacena los temporales en una carpeta llamada "build"
   "latex-workshop.latex.outDir": "./build",
+  "latex-workshop.latex.outDir.pdf": "./",
 
   // Limpia los archivos auxiliares automáticamente después de compilar
   "latex-workshop.latex.autoClean.run": "onBuilt",
@@ -20,6 +21,10 @@
     "*.log",
     "*.synctex.gz"
   ],
+
+  // 🔹 Limpieza completa de la carpeta build al ejecutar "Clean up"
+  "latex-workshop.latex.clean.subfolder.enabled": true,
+  "latex-workshop.latex.clean.command": "rmdir /s /q build",
     // Activar el corrector ortográfico
   "cSpell.enabled": true,
 

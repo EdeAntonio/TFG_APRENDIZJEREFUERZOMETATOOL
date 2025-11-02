@@ -1,4 +1,13 @@
 \chapter{Fundamentos teóricos del Aprendizaje por Refuerzo}
-Como ya se comento en el punto 2.1. la inteligencia artificial busca encontrar las acciones correctas para obtener la máxima recompensa. 
+
+El aprendizaje por refuerzo pertenece a una disciplina más grande, el aprendizaje automático. Esta disciplina agrupa todos los ejercicios en los que una máquina aprende acerca de un entorno. Se dice que un programa aprende cuando de una experiencia, respecto a una tarea y una medida de éxito, si su rendimiento en dicha tarea mejora con la experiencia, en función de la medida seleccionada \cite[Pág. 1]{mitchell_machine_1997}.
+
+Esta disciplina tiene tres grandes ramas: el aprendizaje supervisado, el aprendizaje no supervisado y el aprendizaje por refuerzo. 
+
+El aprendizaje supervisado usa pares de entradas y salidas conocidos para generalizar información nueva \cite[Pág. 137]{Goodfellow-et-al-2016}. Estos pares conocidos sirven para organizar futuros pares entrada y salidas. Un problema de aprendizaje supervisado, podría ser identificar tipos de animales mediante una base de datos previa. En este caso, se alimenta al modelo con imágenes de animales (entrada) y su nombre (salida). El modelo deberá crear relaciones entre ambos. Se evalúa finalmente al programa, por su habilidad de identificar imágenes de animales a su nombre.
+
+El aprendizaje no supervisado, por otro lado, utiliza directamente las entradas, sin una salida asociada \cite[pág 740]{russell2021ia}. Esto hace que el programa deba buscar patrones lógicos inherentes a su clasificación. Estos patrones se basan en características a estudiar \cite[Pág. 142]{Goodfellow-et-al-2016}. Un problema de aprendizaje no supervisado podría ser agrupar imágenes de animales en función de su especie. Es este caso, se alimenta al programa solo con las imágenes. Siguiendo únicamente la composición de los animales mostrados, deberá agruparlos. 
+
+La frontera entre ambas disciplinas puede resultar difusa. No existe una diferencia formal entre ambas, pues la diferencia entre una característica a estudiar y una salida asociada no es absoluta \cite[Pág 142]{Goodfellow}. El aprendizaje por refuerzo se diferencia de ambas a través de una única señal de realimentación (acorde a la definición presentada en el apartado 2.1.). De este modo, esta disciplina combina la supervisión del aprendizaje supervisado, con la ventaja de no requerir una gran base de datos catalogada. Gracias a esto, se puede realizar un aprendizaje secuencial sin disponer de un modelo del entorno, lo que la hace especialmente útil para el estudio de la robótica.
 
 \section{Estructura del RL}
