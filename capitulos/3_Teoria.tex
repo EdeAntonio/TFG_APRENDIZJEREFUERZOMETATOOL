@@ -50,7 +50,7 @@ Un Proceso de Decisión Markov o MDP es una formalización de un proceso de toma
 
 Otro punto clave de los MDP es la propiedad Markov. Esta propiedad se da cuando el estado actual contiene todos los aspectos que determinan el siguiente estado \cite[Pág. 49]{sutton_reinforcement_2020}. Esto permite olvidar los estados pasados, ya que el siguiente estado depende enteramente del estado actual.
 
-Cabe destacar que las aportaciones de Markov incluyen más tipos de procesos, como las cadenas de Markov o los Procesos de Recompensa Markov \cite[Lección 2]{silver_lectures_nodate}. Estos son casos particulares de MDPs, por lo que no se estudiarán en este trabajo. Sin embargo, si se prefiere entender gradualmente los conceptos de estados y sus transiciones, es recomendable trabajarlos.
+Existen otros tipos de procesos que mantienen esta propiedad y describen transiciones de estados, como las cadenas de Markov o los procesos de recompensa Markov \cite{silver_lectures_nodate}. Estos se pueden considerar como casos particulares de MDPs, por lo que no se estudiarán en este trabajo. Sin embargo, si se prefiere entender gradualmente los conceptos de estados y sus transiciones, es recomendable trabajarlos.
 
 \subsection{Formulación de los MDP}
 
@@ -104,7 +104,7 @@ En la figura \ref{fig:Estado2}, se ven los estados a los que se puede transicion
     \label{fig:Estado2}
 \end{figure}
 
-En el estado tres (figura \ref{fig:Estado3}), podemos ver un ejemplo de falta de acciones. Si se considerar como un proceso individual, se debería definir como un Proceso de Recompensa Markov. Por otro lado, si no tuviésemos en cuenta las recompensas, se podría definir como una Cadena de Markov.
+En el estado tres (figura \ref{fig:Estado3}), podemos ver un ejemplo de falta de acciones. Si se considerar como un proceso individual, se debería definir como un Proceso de Recompensa Markov. Por otro lado, si no tuviésemos en cuenta las recompensas, se podría definir como una Cadena de Markov \cite{silver_lectures_nodate}.
 
 \begin{figure}[h!]
     \centering
