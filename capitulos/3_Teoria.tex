@@ -1,13 +1,13 @@
 \chapter{Fundamentos teóricos del Aprendizaje por Refuerzo}
 
 \section{El Aprendizaje por Refuerzo dentro del Aprendizaje Automático}
-El aprendizaje por refuerzo pertenece a una disciplina más grande, el aprendizaje automático. Esta disciplina agrupa todos los ejercicios en los que una máquina aprende acerca de un entorno. Se dice que un programa aprende cuando de una experiencia, respecto a una tarea y una medida de éxito, si su rendimiento en dicha tarea mejora con la experiencia, en función de la medida seleccionada \cite[Pág. 1]{mitchell_machine_1997}.
+El aprendizaje por refuerzo pertenece a una disciplina más grande, el aprendizaje automático. Esta disciplina agrupa todos los ejercicios en los que una máquina aprende acerca de un entorno. Se dice que un programa aprende si mediante una experiencia, asociada a una tarea y una medida de éxito, su rendimiento en dicha tarea mejora en función de la medida seleccionada \cite[Pág. 1]{mitchell_machine_1997}.
 
 Esta disciplina tiene tres grandes ramas: el aprendizaje supervisado, el aprendizaje no supervisado y el aprendizaje por refuerzo. 
 
-El aprendizaje supervisado usa pares de entradas y salidas conocidos para generalizar información nueva \cite[Pág. 137]{Goodfellow-et-al-2016}. Estos pares conocidos sirven para organizar futuros pares entrada y salidas. Un problema de aprendizaje supervisado, podría ser identificar tipos de animales mediante una base de datos previa. En este caso, se alimenta al modelo con imágenes de animales (entrada) y su nombre (salida). El modelo deberá crear relaciones entre ambos. Se evalúa finalmente al programa, por su habilidad de identificar imágenes de animales a su nombre.
+El aprendizaje supervisado aprende a agrupar pares de entradas y salidas de información, a través de ejemplos catalogados \cite[Pág. 137]{Goodfellow-et-al-2016}. Estos ejemplos constan de pares entrada y salida conocidos, los cuales sirven para clasificar futuras entradas. Un problema de aprendizaje supervisado podría ser identificar tipos de animales mediante una base de datos previa. En este caso, se alimenta al modelo con imágenes de animales (entrada) y su nombre (salida). El modelo deberá crear relaciones entre ambos. Se evalúa finalmente al programa por su habilidad de asociar imágenes de animales a su nombre.
 
-El aprendizaje no supervisado, por otro lado, utiliza directamente las entradas, sin una salida asociada \cite[pág 740]{russell2021ia}. Esto hace que el programa deba buscar patrones lógicos inherentes a su clasificación. Estos patrones se basan en características a estudiar \cite[Pág. 142]{Goodfellow-et-al-2016}. Un problema de aprendizaje no supervisado podría ser agrupar imágenes de animales en función de su especie. Es este caso, se alimenta al programa solo con las imágenes. Siguiendo únicamente la composición de los animales mostrados, deberá agruparlos. 
+El aprendizaje no supervisado, por otro lado, utiliza directamente las entradas sin una salida asociada \cite[Pág. 740]{russell2021ia}. Esto hace que el programa deba buscar patrones lógicos inherentes a su clasificación. Estos patrones se basan en características a estudiar \cite[Pág. 142]{Goodfellow-et-al-2016}. Un problema de aprendizaje no supervisado podría ser agrupar imágenes de animales en función de su especie. Es este caso, se alimenta al programa solo con las imágenes. Siguiendo únicamente la composición de los animales mostrados, deberá agruparlos. 
 
 La frontera entre ambas disciplinas puede resultar difusa. No existe una diferencia formal entre ambas, pues la diferencia entre una característica a estudiar y una salida asociada no es absoluta \cite[Pág 142]{Goodfellow-et-al-2016}. El aprendizaje por refuerzo se diferencia de ambas a través de una única señal de realimentación (acorde a la definición presentada en el apartado 2.1.). De este modo, esta disciplina combina la supervisión del aprendizaje supervisado, con la ventaja de no requerir una gran base de datos catalogada. Gracias a esto, se puede realizar un aprendizaje secuencial sin disponer de un modelo del entorno, lo que la hace especialmente útil para el estudio de la robótica.
 
@@ -23,3 +23,109 @@ La estructura del aprendizaje por refuerzo define las interacciones entre un age
     \caption{Interacción agente–entorno.}
     \label{fig:agente_entorno}
 \end{figure}
+
+Un ejemplo de esta estructura, fuera del aprendizaje por refuerzo, estaría en los estudios de condicionamiento operante de Skinner \cite{skinner_behavior_1938}. Estos estudios fueron muy influyentes en los inicios del aprendizaje por refuerzo \cite[Pág. 16]{sutton_reinforcement_2020}. Para poder estudiarlo, se simplificará el ejercicio de estudio. Se supone un ratón en una caja; dentro se colocan dos. Uno de ellos emite una descarga eléctrica al animal, mientras que el otro le proporciona un estímulo positivo. Este ejemplo, a pesar de ser conceptual, ayuda a comprender mejor esta estructura.
+
+El agente es el sujeto que aprende de la experiencia \cite[Pág. 48]{sutton_reinforcement_2020}. Es responsable de las decisiones tomadas en el ejercicio, es decir, realiza todas las acciones definidas sobre el entorno. En el ejemplo propuesto, el agente sería el ratón. Por otro lado, el entorno comprende todo aquello que no es el agente \cite[Pág. 48]{sutton_reinforcement_2020}. En nuestro ejemplo, comprendería el resto de elementos de estudio, la caja, los botones, etc. así como cualquier otro estímulo externo (los investigadores, el laboratorio). Esto es importante para comprender la diferencia entre entorno, estado y observaciones.
+
+El estado es la representación del entorno \cite[Pág. 47]{sutton_reinforcement_2020}. Describe todos los aspectos relevantes del entorno. Las observaciones, por otro lado, representan toda la información que recibe el agente del entorno \cite{silver_lectures_nodate}. En casos donde el entorno es completamente observable, ambas pueden coincidir. Sin embargo, muchas veces los entornos no son completamente observables, por lo que las observaciones no comprenden todo el entorno; o algunas veces, elegimos no observar parte del estado. En el caso Skinner, el estado y las observaciones coinciden, siendo únicamente la posición de los botones (derecha o izquierda). En la robótica, la mayoría de las veces tendremos espacios parcialmente observables \cite{kaelbling_planning_1998}. 
+
+La recompensa es una señal numérica única que el agente recibe del entorno \cite[Pág. 6]{sutton_reinforcement_2020}. Esta señal define el objetivo de la tarea sobre la cual el agente aprende. En el ejemplo propuesto, la recompensa sería negativa al recibir una descarga eléctrica y positiva al recibir el estímulo positivo. Cabe resaltar que en el aprendizaje por refuerzo la recompensa siempre es numérica; a diferencia del estudio ejemplificado.
+
+Por último, las acciones son todos los efectos producidos por decisiones del agente que dirigen al entorno a su siguiente estado \cite[Pág. 48]{sutton_reinforcement_2020}. En el ejemplo del estudio de Skinner, las acciones sería pulsar el botón derecho y pulsar el botón izquierdo.
+
+\subsection{Observaciones en entornos robóticos}
+
+Reservo este apartado para dar mis impresiones sobre esta estructura definida dentro de los entornos robóticos trabajados durante este trabajo.
+
+Mi primera intuición al asociar esta estructura a los entornos aplicados (los cuales se desarrollaran en los siguientes puntos), fue asociar el agente al propio robot. Sin embargo, después de las tareas realizados veo que es una afirmación desacertada. El agente en los casos trabajados siempre será la red neuronal sobre la que se trabaja. El robot, en realidad, forma parte del entorno. Esto queda claro cuando gran parte de las observaciones son del robot: la posición y velocidad de las articulaciones, la energía empleada, presión sobre este, etc. En los casos estudiados, esta red neuronal controla al robot y es el producto final de todos los ensayos. 
+
+Si tomamos un robot, con la tarea de acercarse a un punto P, podemos derivar la siguiente estructura. El agente, como hemos comentado, sería la red neuronal sobre la que trabajaremos. El entorno lo conformaría el robot, la mesa de trabajo, es espacio colindante, posibles obstáculos en dicho espacio, etc. El estado sería la información de este entorno: la posición y velocidad de las articulaciones, las posiciones de los obstáculos, etc. Entre las posibles observaciones, podemos tomar esas mismas posiciones y velocidades de los objetos, una imagen bidimensional del espacio o la presión ejercida sobre el robot en algún punto (cómo el gripper, por ejemplo).
+
+Está estructura, es perfecta para poder organizar correctamente los elementos que toman parte en los ejercicios de aprendizaje por refuerzo. Además, conecta directamente con la base de los algoritmos, los Proceso de Decisión Markov, los cuales veremos a continuación.
+
+\section{Proceso de decisión Markov o MDP}
+
+Un Proceso de Decisión Markov o MDP es una formalización de un proceso de toma de decisiones secuencial. En estos procesos, las acciones influyen tanto en la recompensa inmediata como en la transición de estados. Estos estados tienen a su vez futuras recompensas asociadas, de ahí la realimentación retrasada \cite[Pág. 47]{sutton_reinforcement_2020}. Al definir de manera ideal la toma de decisiones, sirven para formular el problema de aprendizaje por refuerzo de manera idealizada. Esta idealización permite considerar el entorno como completamente observable, incluso cuando se deriva desde uno parcialmente observable \cite[Lección 2]{silver_lectures_nodate}.
+
+Otro punto clave de los MDP es la propiedad Markov. Esta propiedad se da cuando el estado actual contiene todos los aspectos que determinan el siguiente estado \cite[Pág. 49]{sutton_reinforcement_2020}. Esto permite olvidar los estados pasados, ya que el siguiente estado depende enteramente del estado actual.
+
+Cabe destacar que las aportaciones de Markov incluyen más tipos de procesos, como las cadenas de Markov o los Procesos de Recompensa Markov \cite[Lección 2]{silver_lectures_nodate}. Estos son casos particulares de MDPs, por lo que no se estudiarán en este trabajo. Sin embargo, si se prefiere entender gradualmente los conceptos de estados y sus transiciones, es recomendable trabajarlos.
+
+\subsection{Formulación de los MDP}
+
+Los MDP tienen asociada una formulación matemática. Para facilitar el estudio de esta, se facilita un diagrama en la figura \ref{fig:mdp_struct}. Este diagrama representa parte de un MDP de estados discretos y define la transición de un estado a otro. Un MDP completo conecta varias de estos estados y transiciones hasta formar cadenas complejas. Esto se puede ver en la figura \ref{fig:ejemp_mdp}, en el siguiente apartado.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imagenes/MDPStruct.pdf}
+    \caption{Subestructura de un MDP.}
+    \label{fig:mdp_struct}
+\end{figure}
+ 
+En este diagrama, se indican los principales elementos de los MDP:
+\begin{itemize}
+    \item $S$, $S'$: \textbf{Los estados}. A cada paso de tiempo $t$, se recibe un estado $S_t$ \cite[Pág. 48]{sutton_reinforcement_2020}. En este caso, $S_t$ será S y $S_t+1$ será S'. 
+    \item $\pi$: \textbf{La política}. La política define la forma de comportarse del agente \cite[Pág. 6]{sutton_reinforcement_2020}. Está política es la encargada de seleccionar las acciones. En la figura \ref{fig:mdp_struct}, selecciona una de las dos acciones posibles. 
+    \item a: \textbf{Las acciones}. Las acciones son los efectos intencionados del agente sobre el entorno \cite[Pág. 48]{sutton_reinforcement_2020}. Como se ve en el diagrama, la política selecciona una acción; y de esta acción se transiciona al siguiente estado.
+    \item $p$: \textbf{La probabilidad}. Una vez tomada una acción, existe una probabilidad de caer en un estado u otro \cite[Pág. 48]{sutton_reinforcement_2020}.
+    \item $r$: \textbf{Las recompensas}. Al transicionar a un nuevo estado, se recibe una recompensa numérica \cite[Pág. 48]{sutton_reinforcement_2020}. 
+\end{itemize}
+
+Es interesante notar que la recompensa no va asociada a un estado. La recompensa se entrega al transicionar de un estado a otro. Es decir, la recompensa entregada puede no ser la misma al entrar a un estado S' desde un estado S, que desde un estado S''.
+
+Referente a las probabilidades, cabe definir correctamente como funcionan estas. Estas definen la dinámica del MDP \cite[Pág 48.]{sutton_reinforcement_2020}, por lo que son claves para el desarrollo del aprendizaje. Para ello, se va a utilizar la formula postulada en el libro de Sutton y Barto \cite[Pág. 48]{sutton_reinforcement_2020}, sobre el cual se han trabajado las definiciones de este apartado. Se define la probabilidad como una función determinista de 4 argumentos: $ S x R x S x A \rightarrow [0, 1]$. Esta matriz nos permite obtener en función del estado anterior y la acción tomada, el estado actual y la recompensa recibida.
+
+\begin{equation}
+p(s, r \mid s, a) = \Pr(S_t = s', R_t=r \mid S_t-1=s, A_t-1=a)
+\end{equation}
+
+Esta relación es importante a la hora de calcular la función de valor, concepto que veremos en el apartado "La función de valor". Primero, sin embargo, se estudiará un ejemplo más complejo de un MDP.
+
+\subsection{Ejemplo de un MDP}
+
+En este apartado, se presenta un ejemplo de MDP (figura \ref{fig:mdp_ejemplo}) y se comenta sobre sus puntos más interesantes.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imagenes/MDPejemplo.pdf}
+    \caption{Ejemplo de un MDP completo}
+    \label{fig:mdp_ejemplo}
+\end{figure}
+
+Este diagrama representa un MDP completo. Sobre este ejemplo se pueden observar la naturaleza de las trasiciones entre estados. Cabe notar que el estado $S_5$ simboliza el final del proceso; de ahí que venga representado con un cuadrado \cite{silver_lectures_nodate}. Para ilustrar mejor aspectos relevantes de los MDP, se irá estudiando distintos estados de este diagrama.
+
+En la figura \ref{fig:Estado2}, se ven los estados a los que se puede transicionar. Al existir una probabilidad de mantenerse en el mismo estado, esto puede derivar en bucles. Por esto, es importante tener en cuenta que aunque se acabe en el mismo estado, puede haber una recompensa en dicho instante. Se puede tener en cuenta para penalizar o recompensar la movilidad del sistema.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imagenes/Estado2.pdf}
+    \caption{Subdiagrama del estado 2.}
+    \label{fig:Estado2}
+\end{figure}
+
+En el estado tres (figura \ref{fig:Estado3}), podemos ver un ejemplo de falta de acciones. Si se considerar como un proceso individual, se debería definir como un Proceso de Recompensa Markov. Por otro lado, si no tuviésemos en cuenta las recompensas, se podría definir como una Cadena de Markov.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imagenes/Estado3.pdf}
+    \caption{Subdiagrama del estado 3.}
+    \label{fig:Estado3}
+\end{figure}
+
+Por último, en el estado 4 (figura \ref{fig:Estado4}), vemos un ejemplo como la estructura definida; integrado dentro de un MDP. La política debe elegir entre dos acciones, $a_2$ y $a_4$. Si se toma la acción 4, se entra directamente a el estado final. Si se toma, por otra parte, la acción 2, encontramos distintas transiciones asociadas a probabilidades. Dentro de este caso, podemos observar la naturaleza de las probabilidades descritas. La probabilidad de transicionar al estado 3, y obtener su recompensa asociada, desde el estado $S_4$ tomando la acción $a_2$ es $p_3$. Cabe resaltar que la suma de todas las probabilidades asociadas al par estado-acción $S_4$ y $a_2$ debe ser 1, siguiendo la siguiente ecuación \ref{ec:pigual1} \cite[Pág. 48]{sutton_reinforcement_2020}:
+
+\begin{equation}
+    \label{ec:pigual1}
+\sum{s \in S}
+\sum{r \in R}
+p(s',r|s,a) = 1, \text{para todo} s \in S, a \in A
+\end{equation}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imagenes/Estado4.pdf}
+    \caption{Subdiagrama del estado 4.}
+    \label{fig:Estado4}
+\end{figure}
+
