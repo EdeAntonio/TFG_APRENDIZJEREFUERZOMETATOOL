@@ -1,6 +1,7 @@
 \chapter{Fundamentos teóricos del Aprendizaje por Refuerzo}
 
 \section{El Aprendizaje por Refuerzo dentro del Aprendizaje Automático}
+\label{sc:aautomatico}
 El aprendizaje por refuerzo pertenece a una disciplina más grande, el aprendizaje automático. Esta disciplina agrupa todos los ejercicios en los que una máquina aprende acerca de un entorno. Se dice que un programa aprende si mediante una experiencia, asociada a una tarea y una medida de éxito, su rendimiento en dicha tarea mejora en función de la medida seleccionada \cite[Pág. 1]{mitchell_machine_1997}.
 
 Esta disciplina tiene tres grandes ramas: el aprendizaje supervisado, el aprendizaje no supervisado y el aprendizaje por refuerzo. 
@@ -12,6 +13,7 @@ El aprendizaje no supervisado, por otro lado, utiliza directamente las entradas 
 La frontera entre ambas disciplinas puede resultar difusa. No existe una diferencia formal entre ambas, pues la diferencia entre una característica a estudiar y una salida asociada no es absoluta \cite[Pág 142]{Goodfellow-et-al-2016}. El aprendizaje por refuerzo se diferencia de ambas a través de una única señal de realimentación (acorde a la definición presentada en el apartado 2.1.). De este modo, esta disciplina combina la supervisión del aprendizaje supervisado, con la ventaja de no requerir una gran base de datos catalogada. Gracias a esto, se puede realizar un aprendizaje secuencial sin disponer de un modelo del entorno, lo que la hace especialmente útil para el estudio de la robótica.
 
 \section{Estructura del Aprendizaje por Refuerzo}
+\label{ap:StrAR}
 
 El aprendizaje por refuerzo esta definido por una estructura básica. Esta estructura viene de la formalización del problema como un Proceso de Decisión Markov (MDP) \cite[Pág. 47]{sutton_reinforcement_2020}. Esto proviene de la propia naturaleza del problema, por lo que existe ligada al Aprendizaje por Refuerzo. En el próximo apartado, se estudiarán a fondo los MDPs. Sin embargo, al ser la estructura la base de esta disciplina, se presenta primero.
 
@@ -35,6 +37,7 @@ La recompensa es una señal numérica única que el agente recibe del entorno \c
 Por último, las acciones son todos los efectos producidos por decisiones del agente que dirigen al entorno a su siguiente estado \cite[Pág. 48]{sutton_reinforcement_2020}. En el ejemplo del estudio de Skinner, las acciones sería pulsar el botón derecho y pulsar el botón izquierdo.
 
 \subsection{Observaciones en entornos robóticos}
+\label{ap:obsrob}
 
 Reservo este apartado para dar mis impresiones sobre esta estructura definida dentro de los entornos robóticos trabajados durante este trabajo.
 
@@ -45,6 +48,7 @@ Si tomamos un robot, con la tarea de acercarse a un punto P, podemos derivar la 
 Está estructura, es perfecta para poder organizar correctamente los elementos que toman parte en los ejercicios de aprendizaje por refuerzo. Además, conecta directamente con la base de los algoritmos, los Proceso de Decisión Markov, los cuales veremos a continuación.
 
 \section{Proceso de decisión Markov o MDP}
+\label{sc:MDP}
 
 Un Proceso de Decisión Markov o MDP es una formalización de un proceso de toma de decisiones secuencial. En estos procesos, las acciones influyen tanto en la recompensa inmediata como en la transición de estados. Estos estados tienen a su vez futuras recompensas asociadas, de ahí la realimentación retrasada \cite[Pág. 47]{sutton_reinforcement_2020}. Al definir de manera ideal la toma de decisiones, sirven para formular el problema de aprendizaje por refuerzo de manera idealizada. Esta idealización permite considerar el entorno como completamente observable, incluso cuando se deriva desde uno parcialmente observable \cite[Lección 2]{silver_lectures_nodate}.
 
@@ -53,8 +57,9 @@ Otro punto clave de los MDP es la propiedad Markov. Esta propiedad se da cuando 
 Existen otros tipos de procesos que mantienen esta propiedad y describen transiciones de estados, como las cadenas de Markov o los procesos de recompensa Markov \cite{silver_lectures_nodate}. Estos se pueden considerar como casos particulares de MDPs, por lo que no se estudiarán en este trabajo. Sin embargo, si se prefiere entender gradualmente los conceptos de estados y sus transiciones, es recomendable trabajarlos.
 
 \subsection{Formulación de los MDP}
+\label{ap:ForMDP}
 
-Los MDP tienen asociada una formulación matemática. Para facilitar el estudio de esta, se facilita un diagrama en la figura \ref{fig:mdp_struct}. Este diagrama representa parte de un MDP de estados discretos y define la transición de un estado a otro. Un MDP completo conecta varias de estos estados y transiciones hasta formar cadenas complejas. Esto se puede ver en la figura \ref{fig:ejemp_mdp}, en el siguiente apartado.
+Los MDP tienen asociada una formulación matemática. Para facilitar el estudio de esta, se facilita un diagrama en la figura \ref{fig:mdp_struct}. Este diagrama representa parte de un MDP de estados discretos y define la transición de un estado a otro. Un MDP completo conecta varias de estos estados y transiciones hasta formar cadenas complejas. Esto se puede ver en la figura \ref{fig:mdp_ejemplo}, en el siguiente apartado.
 
 \begin{figure}[h!]
     \centering
@@ -80,9 +85,10 @@ Referente a las probabilidades, cabe definir correctamente como funcionan estas.
 p(s, r \mid s, a) = \Pr(S_t = s', R_t=r \mid S_t-1=s, A_t-1=a)
 \end{equation}
 
-Esta relación es importante a la hora de calcular la función de valor, concepto que veremos en el apartado "La función de valor". Primero, sin embargo, se estudiará un ejemplo más complejo de un MDP.
+Esta relación es importante a la hora de calcular la función de valor, concepto que veremos en el apartado \ref{ap:fvalorbell}. Primero, sin embargo, se estudiará un ejemplo más complejo de un MDP.
 
 \subsection{Ejemplo de un MDP}
+\label{ap:MDPej}
 
 En este apartado, se presenta un ejemplo de MDP (figura \ref{fig:mdp_ejemplo}) y se comenta sobre sus puntos más interesantes.
 
@@ -93,7 +99,9 @@ En este apartado, se presenta un ejemplo de MDP (figura \ref{fig:mdp_ejemplo}) y
     \label{fig:mdp_ejemplo}
 \end{figure}
 
-Este diagrama representa un MDP completo. Sobre este ejemplo se pueden observar la naturaleza de las trasiciones entre estados. Cabe notar que el estado $S_5$ simboliza el final del proceso; de ahí que venga representado con un cuadrado \cite{silver_lectures_nodate}. Para ilustrar mejor aspectos relevantes de los MDP, se irá estudiando distintos estados de este diagrama.
+Este diagrama representa un MDP completo. Sobre este ejemplo se pueden observar la naturaleza de las trasiciones entre estados. Cabe notar que el estado $S_5$ simboliza el final del proceso; de ahí que venga representado con un cuadrado \cite{silver_lectures_nodate}. Un estado termina un proceso cuando transiciona únicamente hacia si mismo, generando recompensas igual a 0. A este estado se le conoce como \emph{estado absorvente} \cite[Pág. 57]{sutton_reinforcement_2020}.
+
+Para ilustrar mejor aspectos relevantes de los MDP, se irá estudiando distintos estados de este diagrama.
 
 En la figura \ref{fig:Estado2}, se ven los estados a los que se puede transicionar. Al existir una probabilidad de mantenerse en el mismo estado, esto puede derivar en bucles. Por esto, es importante tener en cuenta que aunque se acabe en el mismo estado, puede haber una recompensa en dicho instante. Se puede tener en cuenta para penalizar o recompensar la movilidad del sistema.
 
@@ -108,24 +116,146 @@ En el estado tres (figura \ref{fig:Estado3}), podemos ver un ejemplo de falta de
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.8\textwidth]{imagenes/Estado3.pdf}
+    \includegraphics[width=0.6\textwidth]{imagenes/Estado3.pdf}
     \caption{Subdiagrama del estado 3.}
     \label{fig:Estado3}
 \end{figure}
 
 Por último, en el estado 4 (figura \ref{fig:Estado4}), vemos un ejemplo como la estructura definida; integrado dentro de un MDP. La política debe elegir entre dos acciones, $a_2$ y $a_4$. Si se toma la acción 4, se entra directamente a el estado final. Si se toma, por otra parte, la acción 2, encontramos distintas transiciones asociadas a probabilidades. Dentro de este caso, podemos observar la naturaleza de las probabilidades descritas. La probabilidad de transicionar al estado 3, y obtener su recompensa asociada, desde el estado $S_4$ tomando la acción $a_2$ es $p_3$. Cabe resaltar que la suma de todas las probabilidades asociadas al par estado-acción $S_4$ y $a_2$ debe ser 1, siguiendo la siguiente ecuación \ref{ec:pigual1} \cite[Pág. 48]{sutton_reinforcement_2020}:
-
 \begin{equation}
     \label{ec:pigual1}
 \sum{s \in S}
 \sum{r \in R}
 p(s',r|s,a) = 1, \text{para todo} s \in S, a \in A
 \end{equation}
-
 \begin{figure}[h!]
     \centering
     \includegraphics[width=0.8\textwidth]{imagenes/Estado4.pdf}
     \caption{Subdiagrama del estado 4.}
     \label{fig:Estado4}
 \end{figure}
+
+\subsection{Funciones de Valor y Ecuación de Bellman}
+
+Las funciones de valor son una parte elemental del aprendizaje por refuerzo. Estas nos permiten analizar la recompensa esperada de retorno en un estado, siguiendo una política concreta. 
+
+Antes de poder definir formalmente las funciones de valor, se deben definir dos conceptos básicos. Por un lado, el \emph{retorno esperado}. Este concepto se asocia, en su caso más simple, a la suma de una secuencia de recompensas:
+\begin{equation}
+G_t = R_{t+1} + R_{t+2} + \cdots + R_T
+\end{equation}
+donde $T$ simboliza el final del episodio estudiado \cite[Pág. 54]{sutton_reinforcement_2020}. Sobre este concepto, se define también el \emph{retorno descontado}. Este concepto incluye un \emph{factor de descuento}, $\gamma$, el cual permite graduar la importancia que se le da a las recompensas futuras sobre la actual. El \emph{retorno descontado} se define mediante la siguiente ecuación:
+\begin{equation}
+G_t = R_{t+1} + \gamma R_{t+2} + \gamma^2 R_{t+3} + \cdots = \sum_{k=0}^{\inf} \gamma^k R_t+k+1
+\end{equation}
+donde el \emph{factor de retorno}, $\gamma$ es un valor entre  0 y 1 \cite[Pág. 54]{sutton_reinforcement_2020}. Es importante notar que se puede reorganizar la ecuación como:
+\begin{equation}
+    \label{ec:gtcont}
+G_t = R_{t+1} + \gamma ( R_{t+2} + \gamma R_{t+3} + \cdots) = R_ {t+1} + G_{t+1}
+\end{equation}
+asociando así el valor de retorno con el propio del siguiente estado $t$. Esto asociación será importante para las funciones de valor, cómo veremos más adelante.
+
+Para ejemplificar este valor de retorno, vamos a estudiar un caso de la figura \ref{fig:mdp_ejemplo}. Para ello, se toma una secuencia de estados $S_1$, $S_3$, $S_4$ y $S_5$. A su vez se da valor a las recompensas, como se puede ver en la figura \ref{fig:ejemplo_gt}. Para dicha secuencia, donde $S_t = S_1$, se obtiene el siguiente valor de retorno:
+\begin{equation}
+    G_t = r_{t+1} + r_{t+2} + r{t+3} = -1 + 2 + 10 = 11
+\end{equation}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imagenes/ejemplo_gt.pdf}
+    \caption{Ejemplo para el cálculo del valor de retorno}
+    \label{fig:ejemplo_gt}
+\end{figure}
+
+Otro concepto importante a tener en cuenta antes de estudiar es el de la \emph{política}. Este punto ya se definió en el apartado \ref{ap:StrAR}, pero se incluye ahora una definición formal mediante la siguiente ecuación:
+\begin{equation}
+\pi (a\mid s ) = Pr\{A_t = a | S_t = s\}
+\end{equation} 
+es decir, es la probabilidad de tomar una acción $A_t$ dependiendo del estado actual $S_t$ \cite[Pág. 58]{sutton_reinforcement_2020}. Sobre esta política existe una \emph{política óptima}, $\pi^{*}$. Esta \emph{política óptima} es el objetivo final del aprendizaje. Después de definir las funciones de valor, definiremos formalmente este concepto.
+
+Una vez definidos el \emph{retorno esperado}, el \emph{factor de retorno} y la \emph{política}, se pasa a definir las funciones de valor. Las funciones de valor describen el retorno esperado en un instante siguiendo una política concreto. Existen dos tipos de funciones de valor:
+\begin{enumerate}
+    \item \textbf{Función de valor estado}: La función de valor de un estado $s$ es el retorno esperado desde $s$ siguiendo una política $\pi$ \cite[Pág. 58]{sutton_reinforcement_2020}:
+    \begin{equation}
+        \label{ec:vs}
+        v_{\pi}(s) = \mathbb{E}[G_t \mid S_t = s], \text{para todo} s \in S
+    \end{equation}
+    \item \textbf{Función de valor estado-acción}: La función de valor de un par acción, $a$, y estado, $s$, es el retorno esperado tomado la acción, $a$ como punto de partida \cite[Pág. 58]{sutton_reinforcement_2020}:
+    \begin{equation}
+        \label{ec:qsa}
+        q_{\pi}(s, a) = \mathbb{E}[G_t \mid S_t = s, A_t=a]
+    \end{equation}
+\end{enumerate}
+
+Cómo antes se definió en la ecuación \ref{ec:gtcont}, existe una continuidad de estas relaciones sobre el retorno y las recompensas \cite[Pág. 59]{sutton_reinforcement_2020}. Es decir, si conocemos el retorno esperado del siguiente estado (o par estado-acción) y conocemos la recompensa inmediata, podemos obtener la función valor del estado actual. A esta relación se le llama \emph{Ecuación de Bellman}, la cual será la base de un gran número de algoritmos, cómo veremos en el apartado \ref{sc:algoritmos}. La \emph{Ecuación de Bellman} se obtiene de modo que \cite[Pág. 59]{sutton_reinforcement_2020}:
+\begin{equation}
+    \label{ec:bellman}
+\begin{split}
+v_{\pi}(s) &= \mathbb{E}[G_t \mid S_t = s]= \\
+    &= \sum_{a} \pi (a \mid s) \sum_{s'} \sum_{r}p(s', r \mid s, a)[r + \gamma \mathbb{E}[G_{t+1} \mid S_{t+1}]] = \\
+    &= \sum_{a} \pi (a \mid s) \sum_{s'} \sum_{r}p(s', r \mid s, a)[r+ \gamma v_{\pi}(s')], \text{ para todo } s \in S,
+\end{split}
+\end{equation}
+o de manera simplificada \cite{silver_lectures_nodate}:
+\begin{equation}
+    v_{\pi} = R^{\pi} + \gamma P^{\pi}v_{\pi}
+\end{equation}
+
+Ahora, se va estudiar un ejemplo de aplicación sobre la figura \ref{fig:ej_bell}. En este ejemplo se trabaja en un ejemplo anterior (figura \ref{fig:Estado4}), relativo al análisis del MDP completo (figura \ref{fig:mdp_ejemplo}). En este ejemplo, se supone que se conoce la función de valor estado de los estados $S_5$, $S_3$ y $S_1$. Se quiere conocer x, que sería la función de valor estado de $S_4$, $v_{\pi}(s)$. Se supone que la política, $\pi$, tiene un probabilidad del 80\% de elegir la acción, $a_4$, que las probabilidades $p_1$, $p_2$ y $p_3$, son respectivamente 0.5, 0.3 y 0.2 y que el \emph{factor de descuento}, $\gamma$, es 0.6.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imagenes/ejemplo_bellman.pdf}
+    \caption{Ejemplo para el cálculo de la función de valor.}
+    \label{fig:ej_bell}
+\end{figure}
+
+Para fragmentar la resolución de este problema, tendremos en cuenta dos ecuaciones derivadas de la \emph{ecuación de Bellman} \ref{ec:bellman}, teniendo en cuenta la ecuación de la \emph(función de valor estado) \ref{ec:vs} y de la \emph{función de valor estado-acción} \ref{ec:qsa}:
+
+\begin{align}
+    \label{ec:qsa}
+    q_{\pi}(s, a) &= \sum_{s',r}p(s', r \mid s, a)[r+ \gamma v_{\pi}(s')] \\
+    \label{ec:vs}
+    v_{\pi}(s) &= \sum_{a} \pi(a \mid s)q_{\pi}(s, a) \quad 
+    \text{por \ref{ec:qsa} y \ref{ec:bellman}} 
+\end{align}
+
+Con estas ecuaciones definidas se puede proceder con el problema. Primero se calcula las funciones de valor de acción estado:
+
+\begin{align}
+    q_{\pi}(S_4, a_4) &= r + \gamma v_{\pi}(S_5) = 10 + 0.6*0 = \nonumber \\
+    &= 10 \nonumber \\
+    q_{\pi}(S_4, a_2) &= p_1*(r + \gamma v_{\pi}(S_1)) + p_2*(r + \gamma v_{\pi}(S_4)) + p_3*(r + \gamma v_{\pi}(S_5))= \nonumber \\
+    &= 0.5(-1+0.6*3)+0.3(1+0.6*x)+0.2*(2+0.6*5) = \nonumber \\
+    &= 1.7 + 0.18x \nonumber
+\end{align}
+
+Una se tiene las funciones de valor acción-estado, se puede calcular la función estado mediante la ecuación \ref{ec:vs}:
+\begin{align}
+    v_{\pi}(S_4) &= \pi *q(S_4, a_4) + (1- \pi)*q(S_4, a_2) = 0.8*10 + 0.2*(1.7 + 0.18*v_{\pi}(S_4)) \nonumber \\
+    v_{\pi}(S_4) &= \frac{2085}{241} \approx 8.7 \nonumber
+\end{align}
+
+Como se puede observar, cuando se conocen las dinámicas del MDP (las probabilidades) y el resto de funciones de valor, es fácil obtener la función valor. Sin embargo, si se quiere conocer la función de valor de cada estado y par estado-acción, se debe calcular para cada caso. En la mayoría de casos, no se dispone de las dinámicas del MDP o, aún cociéndolas, es demasiado complicado derivar de ellas los valores \cite[Pág. 65-66]{sutton_reinforcement_2020}. Para esto, dentro del aprendizaje por refuerzo se han desarrollado algoritmos capaces de resolver estos problemas. Se estudiarán en la sección \ref{sc:algoritmos}. Antes de esto, se debe comprender porqué es importante conocer estos valores, lo cual se verá en el próximo apartado.
+
+\subsection{Política óptima y Valor óptimo}
+\label{ap:fvalorbell}
+
+Resolver un problema de aprendizaje por refuerzo es encontrar una política que obtenga una gran cantidad de recompensa en el tiempo \cite[Pág. 62]{sutton_reinforcement_2020}. Para poder entonces escoger la mejor política se debe tener un criterio. Para ello, vamos a utilizar tres conceptos, desarrollados en el libro de Sutton y Barto \cite{sutton_reinforcement_2020}:
+\begin{enumerate}
+    \item Una política es mejor o igual que otra si y solo si, las funciones valor estado para dicha política son iguales o mayores para todos los estados:
+    \begin{align}
+        \pi \geq \pi' \Leftrightarrow v_{\pi}(s) \geq v_{\pi'}(s), \text{ para todo } s \in S
+    \end{align}
+    \item Existe al menos una política mejor que el resto, la \emph{política óptima}. A pesar de que puede haber más de una, se denotan a todas como $\pi_{*}$.
+    \item Todas las políticas óptimas comparten la misma función valor estado, la llamada \emph{función de valor estado óptima}, asi como la misma función de valor estado-acción, la \emph{función de valor estado-acción óptima}:
+    \begin{align}
+        v_*(s) &= \max_{\pi} v_{\pi}(s), \text{ para todo } s \in S \\
+        q_*(s, a) &= \max_{\pi} q_{\pi}(s, a), \text{ para todo } s \in S, a \in A
+    \end{align}
+\end{enumerate}
+
+Por esto es tan importante conocer las funciones valor. Nos permiten por un lado, diferenciar si una política es mejor que otra; o en otras palabras, si una decisión es mejor que otra. Además, como veremos en la siguiente sección \ref{sc:algoritmos}, son la clave para obtener o aproximarnos a la política óptima.
+
+\section{Principales algoritmos del Aprendizaje por Refuerzo}
+\label{sc:algoritmos}
 
