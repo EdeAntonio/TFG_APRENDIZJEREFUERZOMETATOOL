@@ -36,17 +36,6 @@ La recompensa es una señal numérica única que el agente recibe del entorno \c
 
 Por último, las acciones son todos los efectos producidos por decisiones del agente que dirigen al entorno a su siguiente estado \cite[Pág. 48]{sutton_reinforcement_2020}. En el ejemplo del estudio de Skinner, las acciones sería pulsar el botón derecho y pulsar el botón izquierdo.
 
-\subsection{Observaciones en entornos robóticos}
-\label{ap:obsrob}
-
-Reservo este apartado para dar mis impresiones sobre esta estructura definida dentro de los entornos robóticos trabajados durante este trabajo.
-
-Mi primera intuición al asociar esta estructura a los entornos aplicados (los cuales se desarrollaran en los siguientes puntos), fue asociar el agente al propio robot. Sin embargo, después de las tareas realizados veo que es una afirmación desacertada. El agente en los casos trabajados siempre será la red neuronal sobre la que se trabaja. El robot, en realidad, forma parte del entorno. Esto queda claro cuando gran parte de las observaciones son del robot: la posición y velocidad de las articulaciones, la energía empleada, presión sobre este, etc. En los casos estudiados, esta red neuronal controla al robot y es el producto final de todos los ensayos. 
-
-Si tomamos un robot, con la tarea de acercarse a un punto P, podemos derivar la siguiente estructura. El agente, como hemos comentado, sería la red neuronal sobre la que trabajaremos. El entorno lo conformaría el robot, la mesa de trabajo, es espacio colindante, posibles obstáculos en dicho espacio, etc. El estado sería la información de este entorno: la posición y velocidad de las articulaciones, las posiciones de los obstáculos, etc. Entre las posibles observaciones, podemos tomar esas mismas posiciones y velocidades de los objetos, una imagen bidimensional del espacio o la presión ejercida sobre el robot en algún punto (cómo el gripper, por ejemplo).
-
-Está estructura, es perfecta para poder organizar correctamente los elementos que toman parte en los ejercicios de aprendizaje por refuerzo. Además, conecta directamente con la base de los algoritmos, los Proceso de Decisión Markov, los cuales veremos a continuación.
-
 \section{Proceso de decisión Markov o MDP}
 \label{sc:MDP}
 
@@ -82,7 +71,7 @@ Es interesante notar que la recompensa no va asociada a un estado. La recompensa
 Referente a las probabilidades, cabe definir correctamente como funcionan estas. Estas definen la dinámica del MDP \cite[Pág 48.]{sutton_reinforcement_2020}, por lo que son claves para el desarrollo del aprendizaje. Para ello, se va a utilizar la formula postulada en el libro de Sutton y Barto \cite[Pág. 48]{sutton_reinforcement_2020}, sobre el cual se han trabajado las definiciones de este apartado. Se define la probabilidad como una función determinista de 4 argumentos: $ S x R x S x A \rightarrow [0, 1]$. Esta matriz nos permite obtener en función del estado anterior y la acción tomada, el estado actual y la recompensa recibida.
 
 \begin{equation}
-p(s, r \mid s, a) = \Pr(S_t = s', R_t=r \mid S_t-1=s, A_t-1=a)
+p(s', r \mid s, a) = \Pr(S_{t+1} = s', R_{t+1}=r \mid S_{t}=s, A_{t}=a)
 \end{equation}
 
 Esta relación es importante a la hora de calcular la función de valor, concepto que veremos en el apartado \ref{ap:fvalorbell}. Primero, sin embargo, se estudiará un ejemplo más complejo de un MDP.
@@ -139,13 +128,13 @@ p(s',r|s,a) = 1, \text{para todo} s \in S, a \in A
 
 Las funciones de valor son una parte elemental del aprendizaje por refuerzo. Estas nos permiten analizar la recompensa esperada de retorno en un estado, siguiendo una política concreta. 
 
-Antes de poder definir formalmente las funciones de valor, se deben definir dos conceptos básicos. Por un lado, el \emph{retorno esperado}. Este concepto se asocia, en su caso más simple, a la suma de una secuencia de recompensas:
+Antes de poder definir formalmente las funciones de valor, se deben definir dos conceptos básicos. Por un lado, el \emph{retorno}. Este concepto se asocia, en su caso más simple, a la suma de una secuencia de recompensas:
 \begin{equation}
 G_t = R_{t+1} + R_{t+2} + \cdots + R_T
 \end{equation}
 donde $T$ simboliza el final del episodio estudiado \cite[Pág. 54]{sutton_reinforcement_2020}. Sobre este concepto, se define también el \emph{retorno descontado}. Este concepto incluye un \emph{factor de descuento}, $\gamma$, el cual permite graduar la importancia que se le da a las recompensas futuras sobre la actual. El \emph{retorno descontado} se define mediante la siguiente ecuación:
 \begin{equation}
-G_t = R_{t+1} + \gamma R_{t+2} + \gamma^2 R_{t+3} + \cdots = \sum_{k=0}^{\inf} \gamma^k R_t+k+1
+G_t = R_{t+1} + \gamma R_{t+2} + \gamma^2 R_{t+3} + \cdots = \sum_{k=0}^{\inf} \gamma^k R_{t+k+1}
 \end{equation}
 donde el \emph{factor de retorno}, $\gamma$ es un valor entre  0 y 1 \cite[Pág. 54]{sutton_reinforcement_2020}. Es importante notar que se puede reorganizar la ecuación como:
 \begin{equation}
@@ -156,7 +145,7 @@ asociando así el valor de retorno con el propio del siguiente estado $t$. Esto 
 
 Para ejemplificar este valor de retorno, vamos a estudiar un caso de la figura \ref{fig:mdp_ejemplo}. Para ello, se toma una secuencia de estados $S_1$, $S_3$, $S_4$ y $S_5$. A su vez se da valor a las recompensas, como se puede ver en la figura \ref{fig:ejemplo_gt}. Para dicha secuencia, donde $S_t = S_1$, se obtiene el siguiente valor de retorno:
 \begin{equation}
-    G_t = r_{t+1} + r_{t+2} + r{t+3} = -1 + 2 + 10 = 11
+    G_t = r_{t+1} + r_{t+2} + r_{t+3} = -1 + 2 + 10 = 11
 \end{equation}
 
 \begin{figure}[h!]
@@ -172,7 +161,7 @@ Otro concepto importante a tener en cuenta antes de estudiar es el de la \emph{p
 \end{equation} 
 es decir, es la probabilidad de tomar una acción $A_t$ dependiendo del estado actual $S_t$ \cite[Pág. 58]{sutton_reinforcement_2020}. Sobre esta política existe una \emph{política óptima}, $\pi^{*}$. Esta \emph{política óptima} es el objetivo final del aprendizaje. Después de definir las funciones de valor, definiremos formalmente este concepto.
 
-Una vez definidos el \emph{retorno esperado}, el \emph{factor de retorno} y la \emph{política}, se pasa a definir las funciones de valor. Las funciones de valor describen el retorno esperado en un instante siguiendo una política concreto. Existen dos tipos de funciones de valor:
+Una vez definidos el \emph{retorno}, el \emph{factor de descuento} y la \emph{política}, se pasa a definir las funciones de valor. Las funciones de valor describen el retorno esperado en un instante siguiendo una política concreta. Existen dos tipos de funciones de valor:
 \begin{enumerate}
     \item \textbf{Función de valor estado}: La función de valor de un estado $s$ es el retorno esperado desde $s$ siguiendo una política $\pi$ \cite[Pág. 58]{sutton_reinforcement_2020}:
     \begin{equation}
@@ -186,19 +175,31 @@ Una vez definidos el \emph{retorno esperado}, el \emph{factor de retorno} y la \
     \end{equation}
 \end{enumerate}
 
-Cómo antes se definió en la ecuación \ref{ec:gtcont}, existe una continuidad de estas relaciones sobre el retorno y las recompensas \cite[Pág. 59]{sutton_reinforcement_2020}. Es decir, si conocemos el retorno esperado del siguiente estado (o par estado-acción) y conocemos la recompensa inmediata, podemos obtener la función valor del estado actual. A esta relación se le llama \emph{Ecuación de Bellman}, la cual será la base de un gran número de algoritmos, cómo veremos en el apartado \ref{sc:algoritmos}. La \emph{Ecuación de Bellman} se obtiene de modo que \cite[Pág. 59]{sutton_reinforcement_2020}:
-\begin{equation}
-    \label{ec:bellman}
-\begin{split}
-v_{\pi}(s) &= \mathbb{E}[G_t \mid S_t = s]= \\
-    &= \sum_{a} \pi (a \mid s) \sum_{s'} \sum_{r}p(s', r \mid s, a)[r + \gamma \mathbb{E}[G_{t+1} \mid S_{t+1}]] = \\
+Cómo antes se definió en la ecuación \ref{ec:gtcont}, existe una continuidad de estas relaciones sobre el retorno y las recompensas \cite[Pág. 59]{sutton_reinforcement_2020}. Es decir, si conocemos el retorno esperado del siguiente estado (o par estado-acción) y conocemos la recompensa inmediata, podemos obtener la función valor del estado actual. A esta relación se le llama \emph{Ecuación de Bellman}, la cual será la base de un gran número de algoritmos, cómo veremos en el apartado \ref{sc:algoritmos}. La \emph{Ecuación de Bellman} se obtiene de modo que \cite[Pág. 59]{sutton_reinforcement_2020} para función valor estado (teniendo en cuenta la figura \ref{fig:mdp_struct}):
+\begin{align} 
+v_{\pi}(s) &= \mathbb{E}[G_t \mid S_t = s]= \nonumber \\
+    &= \sum_{a} \pi (a \mid s) \sum_{s'} \sum_{r}p(s', r \mid s, a)[r + \gamma \mathbb{E}[G_{t+1} \mid S_{t+1}]] =  \text{ por \ref{ec:gtcont}}\nonumber \\
+    \label{ec:bellmanv}
     &= \sum_{a} \pi (a \mid s) \sum_{s'} \sum_{r}p(s', r \mid s, a)[r+ \gamma v_{\pi}(s')], \text{ para todo } s \in S,
-\end{split}
-\end{equation}
+\end{align}
 o de manera simplificada \cite{silver_lectures_nodate}:
-\begin{equation}
-    v_{\pi} = R^{\pi} + \gamma P^{\pi}v_{\pi}
-\end{equation}
+\begin{align}
+    v_{\pi} = R^{\pi} + \gamma P^{\pi}v_{\pi} \nonumber
+\end{align}
+y para función valor estado-acción (según la figura \ref{fig:mdp_struct_q}):
+\begin{align}
+    q_{\pi}(s, a) &= \mathbb{E}[G_t \mid S_t = s, A_t = a] = \nonumber \\
+    &= \sum_{s',r} p(s', r \mid s, a)(r + \gamma \sum_{a'} \pi(a' \mid s') \mathbb{E}[G_{t+1} \mid S_t = s', A_t = a']) \text{ por \ref{ec:gtcont}} \nonumber \\
+    \label{ec:bellmanq}
+    &= \sum_{s',r} p(s', r \mid s, a)[r + \gamma \sum_{a'} \pi(a' \mid s') q_{\pi}(a', s')]
+\end{align}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imagenes/MDPstructq.pdf}
+    \caption{Estrcutura de un MDP enfocada al par estado-acción}
+    \label{fig:mdp_struct_q}
+\end{figure}
 
 Ahora, se va estudiar un ejemplo de aplicación sobre la figura \ref{fig:ej_bell}. En este ejemplo se trabaja en un ejemplo anterior (figura \ref{fig:Estado4}), relativo al análisis del MDP completo (figura \ref{fig:mdp_ejemplo}). En este ejemplo, se supone que se conoce la función de valor estado de los estados $S_5$, $S_3$ y $S_1$. Se quiere conocer x, que sería la función de valor estado de $S_4$, $v_{\pi}(s)$. Se supone que la política, $\pi$, tiene un probabilidad del 80\% de elegir la acción, $a_4$, que las probabilidades $p_1$, $p_2$ y $p_3$, son respectivamente 0.5, 0.3 y 0.2 y que el \emph{factor de descuento}, $\gamma$, es 0.6.
 
@@ -209,14 +210,13 @@ Ahora, se va estudiar un ejemplo de aplicación sobre la figura \ref{fig:ej_bell
     \label{fig:ej_bell}
 \end{figure}
 
-Para fragmentar la resolución de este problema, tendremos en cuenta dos ecuaciones derivadas de la \emph{ecuación de Bellman} \ref{ec:bellman}, teniendo en cuenta la ecuación de la \emph(función de valor estado) \ref{ec:vs} y de la \emph{función de valor estado-acción} \ref{ec:qsa}:
+Para fragmentar la resolución de este problema, tendremos en cuenta ambas ecuaciones de bellman, la de estado \ref{ec:bellmanv} y la de estado-acción \ref{ec:bellmanq}:
 
 \begin{align}
-    \label{ec:qsa}
-    q_{\pi}(s, a) &= \sum_{s',r}p(s', r \mid s, a)[r+ \gamma v_{\pi}(s')] \\
-    \label{ec:vs}
+    \label{ec:qsa_en_vs}
+    q_{\pi}(s, a) &= \sum_{s',r}p(s', r \mid s, a)[r+ \gamma v_{\pi}(s')] \text{ por \ref{ec:bellmanv} y \ref{ec:bellmanq}}\\
     v_{\pi}(s) &= \sum_{a} \pi(a \mid s)q_{\pi}(s, a) \quad 
-    \text{por \ref{ec:qsa} y \ref{ec:bellman}} 
+    \text{por \ref{ec:bellmanv} y \ref{ec:qsa}} 
 \end{align}
 
 Con estas ecuaciones definidas se puede proceder con el problema. Primero se calcula las funciones de valor de acción estado:
@@ -249,13 +249,234 @@ Resolver un problema de aprendizaje por refuerzo es encontrar una política que 
     \item Existe al menos una política mejor que el resto, la \emph{política óptima}. A pesar de que puede haber más de una, se denotan a todas como $\pi_{*}$.
     \item Todas las políticas óptimas comparten la misma función valor estado, la llamada \emph{función de valor estado óptima}, asi como la misma función de valor estado-acción, la \emph{función de valor estado-acción óptima}:
     \begin{align}
+        \label{ec:vsopt}
         v_*(s) &= \max_{\pi} v_{\pi}(s), \text{ para todo } s \in S \\
+        \label{ec:qsaopt}
         q_*(s, a) &= \max_{\pi} q_{\pi}(s, a), \text{ para todo } s \in S, a \in A
     \end{align}
 \end{enumerate}
 
 Por esto es tan importante conocer las funciones valor. Nos permiten por un lado, diferenciar si una política es mejor que otra; o en otras palabras, si una decisión es mejor que otra. Además, como veremos en la siguiente sección \ref{sc:algoritmos}, son la clave para obtener o aproximarnos a la política óptima.
 
-\section{Principales algoritmos del Aprendizaje por Refuerzo}
+\section{Algoritmos clásicos del aprendizaje por refuerzo}
 \label{sc:algoritmos}
 
+Existen múltiples algoritmos para resolver el Aprendizaje por Refuerzo. En esta sección, veremos varios de estos. Dentro de la disciplina de Aprendizaje por Refuerzo, estos algoritmos han aumentado su complejidad para poder cubrir problemas de más amplios. Los primeros algoritmos cubren MDP discretos e ideales, por lo que tienen una aplicación práctica reducida; y en el caso de este trabajo, nula. Sin embargo, es importante comprender su teoría para entender como aprenden los agentes. La base de todos estos algoritmos es compartida.
+
+Los algoritmos usados en este trabajo son proporcionados por bibliotecas, por lo que no se trabajan directamente. El enfoque práctico de este trabajo está en la elaboración de la estructura sobre la cual aprende el algoritmo. Esto incluye la construcción de entornos, la obtención de observaciones, el cálculo de las recompensas y la gestión de acciones. A pesar de esto se van a exponer aspectos relevantes en esta sección. En el apartado \ref{ap:aproxfunc}, se estudiará como se aplican los algoritmos a MDP continuos mediante el uso de aproximaciones y pesos; así como sus objetivos, ventajas y desventajas en el apartado \ref{ap:agmodernos}
+
+\subsection{Programación Dinámica}
+\label{ap:DP}
+La programación dinámica o DP se refiere al conjunto de algoritmos usados para obtener la política óptima de un modelo perfecto MDP. La clave de estos algoritmos es el uso de las funciones de valor para organizar y estructurar la búsqueda de buenas políticas. La política óptima se obtiene a partir de la función de valor estado óptima (ecuación \ref{ec:vsopt}) o la función de valor acción-estado óptima (ecuación \ref{ec:qsaopt}). A su vez estas satisfacen la ecuación de Bellman \cite[Pág. 73]{sutton_reinforcement_2020}:
+\begin{align}
+    \label{ec:vsoptbell}
+    v_*(s) &= \max_{a}\sum_{s', r'}p(s', r \mid s, a)[r + \gamma v_*(s')] \text{por \ref{ec:bellmanv} y \ref{ec:vsopt}} \\
+    \label{ec:qsaoptbell}
+    q_*(s, a) &= \sum_{s', r'}p(s', r \mid s, a)[r+ \gamma \max_{a'}q_*(s', a')] \text{ por \ref{ec:bellmanq} y \ref{ec:qsaopt}}
+\end{align}
+para todo $s \in S$, y $a \in A(s)$, y $s' \in S^{+}$ .
+
+Los algoritmos de DP, utilizan las ecuaciones de Bellman con una serie de reglas de actualización, buscando simple el valor máximo de recompensa, es decir, de funciones de valor \cite[Pág. 74]{sutton_reinforcement_2020}. Cabe resaltar que para poder realizar el calculo de la política óptima se deben conocer las dinámicas del sistema, es decir, se conoce $p(s', r \mid s, a)$ para todo $s \in S$, $a \in A(s)$, $r \in R$ y $s' \in S^{+}$ \cite[Pág. 74]{sutton_reinforcement_2020}
+
+Los algoritmos DP se construyen con distintos procesos a realizar \cite[Pág. 70-79]{sutton_reinforcement_2020}:
+\begin{itemize}
+    \item Evaluación de la política. Se calculan nuevos valores para las funciones valor, $v_{k+1}(s)$, en función de la política escogida y los valores actuales de la función valor, $v_k$, usando la ecuación de bellman:
+    \begin{align}
+        \label{ec:poleva}
+    v_{k+1} = \sum_{a} \pi_{k}(a \mid s) \sum_{s', r}p(s',r\mid s,a)[r + \gamma v_k(s')] \text{ para todo } s \in S \text{ por \ref{ec:bellmanv}}
+    \end{align}
+    \item Mejora de política. En este paso se escoge una nueva política, valorando las distintas acciones mediante la función de valor estado-acción. Al tener los valores de la función valor estado, se puede utilizar la ecuación \ref{ec:qsa_en_vs}. Para confeccionar la política, al buscar la obtención de la mayor cantidad de recompensa, se postula el termino de \ref{ec:greedypol}, la cual responde a:
+    \begin{align}
+        \label{ec:greedypol}
+        \pi'(a \mid s) = \argmax_a q_{\pi}(s, a), \text{ para todo } s \in S
+    \end{align}
+\end{itemize}
+
+Sumado a esto, existen dos maneras de iterar estos procesos para obtener la política óptima \cite[Pág. 80-87]{sutton_reinforcement_2020}:
+\begin{itemize}
+    \item Iteración de política. En este procedimiento se evalúa una política para después escoger una política mejor mediante \ref{ec:greedypol}. De esta forma, obtenemos la siguiente secuencia:
+    \begin{flalign}
+        & \pi_0 \rightarrow v_0 \rightarrow \pi_1 \rightarrow v_1 \rightarrow \cdots \rightarrow \pi_* \rightarrow v_*
+    \end{flalign}
+    \item Iteración de valor. En este procedimiento se busca obtener directamente la función de valor óptima. En este caso, se introduce un paso distinto a los anteriores. Se lleva la selección codiciosa junto con la evaluación de la política, de modo que:
+    \begin{align}
+        \label{ec:vs_ev_greedy}
+        v_{k+1}(s) = \max_a \sum_{s', r \mid s, a}p(s',r\mid s,a)[r + \gamma v_k(s')] \text{ para todo } s \in S \text{ por \ref{ec:vsoptbell} y \ref{ec:poleva}}
+    \end{align}
+    Una vez obtenida la política óptima (cuando $v_{k+1} - v_{k} = 0$), configuramos la política en función de \ref{ec:greedypol}.
+    \item DP asíncrona. Estos algoritmos en vez de realizar análisis completos, trabajan actualizando estados concretos, sin necesidad de mantener una estructura concreta. Estos métodos siguen requiriendo la misma necesidad de computación, pero aceleran el desarrollo de políticas. Se centran en estados clave y actualizan la política en función de estos.
+\end{itemize}
+
+En estos algoritmos, los dos procesos estudiados se encadenan en dos fases: una fase de evaluación de la política (cálculo de funciones valor) y otra de mejora de la política. En la iteración de política, se alterna continuamente una fase de evaluación con otra de mejora. Por otro lado, en iteración de valor, se mantiene una fase de evaluación, donde una vez obtenida la función de valor óptima se aplica una fase de mejora. 
+
+Existe un cuarto tipo de algoritmos que permiten las interacciones entre ambas fases, los basados en la \emph{iteración de política generaliza} o GPI. Estas fases compiten y cooperan entre sí, alejando a la otra de su objetivo a la vez que convergen hacia un mismo punto. Se observa que cada fase tiene un objetivo: en evaluación se busca obtener la función de valor óptima y en mejora la política óptima. Esto se puede observar en el siguiente diagrama \ref{fig:GPIdiagram} \cite[Pág. 87]{sutton_reinforcement_2020}:
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imagenes/vpidiagrama.pdf}
+    \caption{Diagrama  de fases en DP \cite[Pág. 87]{sutton_reinforcement_2020}}
+    \label{fig:GPIdiagram}
+\end{figure}
+
+DP es inefectivo para grandes problemas, pero son bastante eficientes en la resolución de MDP. Estos métodos son mejores que cualquier búsqueda directa, ya que aseguran la convergencia en la política óptima. Existen también métodos lineares, pero se vuelven ineficientes al escalar el número de entornos \cite[Pág. 87]{sutton_reinforcement_2020}.
+
+Por otro lado, DP no son viable en el campo de la robótica. En primer lugar, siguen siendo demasiado ineficientes. Este método necesita un estudio completo de todos los estados, incluso en DP asíncronos. Por esto, es inviable cuando se trabaja un gran número de estados. Además, en robótica, los estados son continuos; por lo que habría que introducir una aproximación. Por último, en robótica, pese a la posibilidad de calcular su modelo dinámico, esto no interesa debido a su complejidad y no linealidad. Por esto, se vuelve más interesante utilizar otros algoritmos que no necesitan este modelo dinámico. En los siguientes apartados, se analizarán algunos de estos algoritmos.
+
+\subsection{Método Montecarlo}
+\label{ap:MC}
+El primero de estos algoritmos que se estudiará es el método de Monte Carlo o MC. Este método se formalizo en 1949, en el artículo de Metropolis y Ulam \cite{metropolis_monte_1949}. En el se presenta un método para calcular mediante un enfoque estadístico para resolver problemas matemáticos complejos y difíciles de abordar analíticamente. En este artículo se pone de ejemplo las interacciones entre neutrones y átomos en una reacción nuclear. Este método hace uso la ley de números grandes y los teoremas fundamentales de la teoría de la probabilidad para converger a un resultado próximo al real.
+
+En el caso de aprendizaje por refuerzo, este método permite realizar el aprendizaje sin tener un contexto previo del entorno, aprendiendo únicamente de la experiencia y no de un estudio previo del modelo \cite[Pág. 91]{sutton_reinforcement_2020}. Esto resuelve unos principales problemas de DP, la necesidad de conocer el modelo completo del entorno. Esto se hace estimando la media de los retornos obtenidos. Para ello, se deberá dividir la experiencia en episodios. Estos episodios deberán terminar en un retorno, independientemente de las acciones tomadas \cite[Pág. 91]{sutton_reinforcement_2020}. En otras palabras, deberán terminar en un estado absorbente (concepto introducido en el apartado \ref{ap:MDPej}).
+
+Así como en DP y, como se verá, en el resto de algoritmos, el ejercicio de MC se divide en dos partes: predicción y control. La predicción podría asociarse a la evaluación de la política, salvo que en MC se trata de una estimación; por esto se usa el termino predicción. El control se asociaría a la mejora de la política. A continuación, se estudiará como se implementa cada parte. En este caso, se estudiará la predicción y el control como problemas separados.
+
+
+\subsubsection{Predicción}
+La predicción en Monte Carlo busca estimar las funciones de valor para una política determinada \cite[Pág. 92]{sutton_reinforcement_2020}. Teniendo en cuenta que la funciones de valor son el retorno esperado de un estado o un par estado acción (ecuación \ref{ec:vs}), aplicando el método de Monte Carlo a esta tarea, simplemente se debe realizar la media de los retornos obtenidos para calcular la funciones de valor. Se puede actualizar entonces la función de valor estado de modo que \cite[Lección 4]{silver_lectures_nodate}:
+\begin{align}
+    N(s) &\leftarrow N(s) + 1 \nonumber \\
+    S(s) &\leftarrow S(s) + G_t \nonumber \\
+    V(s) &\leftarrow \frac{V(s)}{N(s)} \nonumber \\
+    V(s) &\rightarrow v_{\pi}(s) \text{ cuando } N(s) \rightarrow \infty \nonumber
+\end{align}
+teniendo un registro de los retornos obtenidos ($S(S)$) y el número de veces en los cuales se ha entrado en el estado ($N(S)$); haciendo la media en cada uno de ellos ($V(s)$). Esta media converge al valor real de la función valor estado cuando el numero de retornos obtenidos, en un estado, tiende a infinito.
+
+Utilizando este método de actualización existen dos principales algoritmos: MC de \emph{primera visita} y MC de \emph{todas las visitas} \cite[Pág. 93]{sutton_reinforcement_2020}. En el algoritmo de primera visita, se actualizan los valores únicamente la primera vez que se alcanza dicho estado; mientras que, en el de todas las visitas, se actualiza cada vez que se alcanza.
+
+En Monte Carlo, siempre se debe tener en cosideración la falta de un modelo del entorno; por ello, es más interesante estimar el valor de las acciones (función de valor estado-acción) que del estado (función de valor) \cite[Pág. 96]{sutton_reinforcement_2020}. Al no tener este modelo, no se puede saber cual será el siguiente estado; mientras que siempre tendremos conocimiento de las acciones a realizar, ya que dependen directamente del agente en estudio. Se debe adaptar entonces el método de Monte Carlo al valor de las acciones:
+\begin{align}
+    N(s, a) &\leftarrow N(s, a) + 1 \nonumber \\
+    SA(s, a) &\leftarrow SA(s, a) + G_t \nonumber \\
+    Q(s, a) &\leftarrow \frac{SA(s, a)}{N(s, a)} \nonumber \\
+    Q(s, a) &\rightarrow q_{\pi}(s, a) \text{ cuando } N(s, a) \rightarrow \infty \nonumber
+\end{align}
+teniendo en cuenta un algoritmo de primera visita o de todas las visitas. 
+
+A pesar de la ventaja de valorar acciones en vez de estados, al centrarse en las acciones, se crea un problema. El objetivo de la predicción es determinar que acciones son mejores; sin embargo,  si se tiene un política determinista, algunos pares acción-estado nunca se darán \cite[Pág. 96]{sutton_reinforcement_2020}. Este problema se tiene en cuenta siempre que se desconozca el modelo: una vez encontrada una buena política, se debe seguir al pie de la letra, o variarla para continuar buscando nuevas políticas. Este problema se denomina \emph{explotación contra exploración} \cite{silver_lectures_nodate}. En el siguiente apartado, veremos formas de mejorar las políticas, manteniendo en todo tiempo la exploración.
+
+\subsubsection{Control}
+El control en el método de Monte Carlo, así como en el resto de algoritmos, se centra en la aproximación de la política óptima. Para ello, se puede tomar como referencia los algoritmos GPI de DP. Se tendrán dos procesos distintos: uno en el que se estima el valor de las acciones y otro donde se mejorará la política en función de estas \cite[Pág. 97]{sutton_reinforcement_2020}.
+
+En el caso de MC, como se viene repitiendo, no se conoce el modelo del entorno, por lo que para usar una política codiciosa (ecuación \ref{ec:greedypol}), de igual modo que en DP, se debe introducir el concepto de \emph{inicios explorativos} \cite[Pág. 92]{sutton_reinforcement_2020}. Para que este se de, debe existir una probabilidad de empezar en cualquier de los pares estado acción; de modo que todos se puedan valorar. 
+
+Esta condición no es fácil o eficiente que se de. En los casos aplicados a la robótica que se estudiarán, no se dá esta condición. En estos casos, al ser estados continuos es difícil que esta situación se de; tenemos infinitos estados. Además, es interesante tener un único punto de inicio de referencia. Por ello, se deben encontrar otras formas de gestionar la exploración.
+
+Una de estas formas se denomina $\epsilon-codiciosa$. Esta política regula el grado de exploración a través de un coeficiente $\epsilon$. A través de este método, podemos escoger la política de la siguiente manera \cite[Pág. 101]{sutton_reinforcement_2020}:
+\begin{align}
+    \pi(a \mid S_t) &=
+    \begin{cases}
+        1 - \epsilon + \frac{\epsilon}{N_a(S_t)} & \text{ si } a = \argmax_{a} q(a, S_t) \\
+        \frac{\epsilon}{N_a(S_t)} & \text{ si } a \neq \argmax_{a} q(a, S_t) \\
+    \end{cases}
+    &&\text{ para todo } S_t \in S
+\end{align}
+de modo que $N_a$ sea el número de acciones y $\epsilon$ un número entre 0 y 1. De este modo, existe una posibilidad de tomar cada una de las acciones, regulando a su vez esta probabilidad mediante el factor $\epsilon$. El valor de este último parámetro variará en función del objetivo del aprendizaje. Este objetivo, a su vez cambiará, dependiendo de la forma en la que se trabaje sobre la política, lo cual se estudiará en el apartado \ref{ap:offvson}.
+
+\subsubsection{Problema del método Monte Carlo}
+El principal problema con el método Monte Carlo es la toma de valores y su actualización. Monte Carlo (figura \ref{fig:MC}) necesita esperar hasta el final del episodio para obtener el retorno y ajustar los valores función. Esto alarga los procesos de computación, dependiendo a su vez de la duración de los episodios. 
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imagenes/MonteCarlo.pdf}
+    \caption{Figura de obtención del retorno en MC.}
+    \label{fig:MC}
+\end{figure}
+Sin embargo, se tiene a disposición una herramienta que permite actualizar inmediatamente: el retorno esperado, es decir, la función de valor. A continuación, se estudiará un algoritmo que hace uso de esta herramienta para adelantar la actualización.
+
+\subsection{Temporal Difference o TD}
+
+Temporal Difference o TD es una de las ideas que revolucionó el aprendizaje por refuerzo. Mezcla dos ideas principales: aprendizaje de experiencia directa (aportado desde Monte Carlo) y utilización de los valores estimados (aportado desde DP) \cite[Pág. 119]{sutton_reinforcement_2020}. Por un lado, no estudia todos los casos particularmente ni necesita información previa sobre ellos, sino que actualiza los estados en los que va entrando y recibiendo recompensa mediante ello. Por otro lado, esta actualización se hace utilizando el valor  del siguiente estado (predicción) o acción (control). De este modo, los algoritmos TD se basan en la siguiente actualización \cite[Pág. 120 y 129]{sutton_reinforcement_2020}:
+\begin{align}
+    V(S_t) &\leftarrow V(S_t) + \alpha[R_{t+1}+V(S_[t+1])-V(S_t)] &&\text{Predicción} \\
+    \label{ec:SARSA}
+    Q(S_t, A_t) &\leftarrow Q(S_t, A_t) + \alpha[R_{t+1}+Q(S_{t+1}, A_{t+1})-V(S_{t}+A_{t})] &&\text{Control (SARSA)}
+\end{align}
+De este modo, se puede actualizar inmediatamente después de pasar el estado, trabajando siempre con la información más reciente. 
+
+Esta rápida actualización es una gran ventaja, pero en la gran mayoría de casos se deberá buscar un compromiso, de modo que no se ocupe la gran parte de la capacidad computacional en las actualizaciones. Para ello, existen los algoritmos \emph{n-pasos TD} \cite[Pág. 141]{sutton_reinforcement_2020}. Estos permiten regular en que momento se actualizan las funciones valor. Un TD de \emph{1-paso}, sería el algoritmo que se acaba de estudiar, donde actualizamos en el siguiente instante; es decir, siguiente estado. Por otro lado, un TD de infinitos pasos, \emph{$\infty$-pasos}, correspondería a un algoritmo Monte Carlo. Se puede configurar entonces la actualización de los estados en función de $n$, como se puede observar en la figura \ref{fig:npasos}.
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imagenes/npasosTD.png}
+    \caption{Resumen de los tipos de \emph{TD n-pasos}}
+    \label{fig:npasos}
+\end{figure}
+
+El control de este este método, por otro lado, mantiene el uso de los valores Q, tal como se ha indicado anteriormente. Sin embargo, como se adelantó en el apartado \ref{ap:MC}, no siempre trabajaremos de la misma forma estos valores. Existen dos formas de trabajar los valores de la política, en \emph{on-policy} y \emph{off-policy}. A continuación, se verán las diferencias entre ambas formas de trabajar.
+
+\subsection{On-Policy vs Off-Policy}
+\label{ap:offvson}
+En el primer caso, \emph{On-Policy}, se aprende acerca de la política $\pi$ a partir de la experiencia muestreada de $\pi$\cite[Lección 5]{silver_lectures_nodate}. Es decir, la información obtenida (retornos y funciones valor), proviene de la política la cual se aspira mejorar. Un ejemplo de este modo de trabajo es el método SARSA (ecuación \ref{ec:SARSA}). En él, se trabaja sobre una única política $\pi$, para la cual se estiman los valores de acción, $q_{\pi}(s, a)$, y se mejora en función de estos valores. En este caso, se ajusta el parámetro de $\epsilon-codiciosa$ de modo que $\epsilon = 1/t$ \cite[Pág. 129]{sutton_reinforcement_2020}. Así, se comenzará con una gran exploración, valorando así todas las acciones posibles; para tender con el tiempo a única política estable (poca exploración $\epsilon \rightarrow 0)$. El problema de esta forma de trabajo es que al tender $\epsilon$ a 0, se dejan de visitar todos los pares estado-acción, por lo que no converge a la política óptima.
+
+En el segundo caso, \emph{Off-Policy}, se aprende acerca de la política $\pi$ a partir de la experiencia muestreada desde $\mu$ \cite[Lección 5]{silver_lectures_nodate}. Es decir, se tiene dos políticas, una política que se quiere mejorar, y una política de la cual se aprende. Esto permite mantener una exploración constante, ya que se aprende sobre una política base robusta; asegurando así la convergencia. Un ejemplo de esta forma de trabajo esta en el algoritmo \emph{Q-learning}, que actualiza tal que \cite[Pág. 131]{sutton_reinforcement_2020}:
+\begin{align}
+    Q(S_t, A_t) \leftarrow Q(S_t, A_t)+\alpha[R_{t+1}+ \gamma \max_{a}Q(S_{t+1},a)-Q(S_t, A_t)]
+\end{align}
+
+Ambas formas de trabajar son útiles. \emph{On-policy} mantiene una estabilidad y coherencia entre el aprendizaje y la acción, haciéndola más predecible y segura; pero su convergencia es lenta y no es segura. \emph{Off-policy}, por otro lado, permite aprender una buena política rápidamente y manteniendo la exploración; sacrificando la estabilidad.
+
+Con todos estos conceptos, se pueden realizar ejercicios completos de aprendizaje. Son, además la base de los algoritmos modernos, los cuales utilizaremos en nuestros ejercicios aplicados a la robótica. Sin embargo, hay un punto que los limita: el número de estados. Como se viene indicando, cuando se trabaja con un gran número de estados (o son infinitos como en el caso de los estados continuos), se deben introducir nuevos conceptos; los cuales veremos a continuación. Cabe resaltar que estos conceptos se alejan del enfoque de este proyecto, la construcción de entornos, pero se deben comprender y tener en cuenta.
+
+\section{Consideraciones para estados continuos}
+\label{ap:aproxfunc}
+Todos los métodos que han sido vistos hasta el momento sirven para estados discretos. Concretamente, en los dos últimos, se observa una actualización de un valor asociado a un estado $v(S_t)$ que debe acercarse a los valores de retorno obtenido, es decir, que actualizamos los estados en función del retorno $S_t \rightarrowtail G_t$ (en Monte Carlo) o el retorno esperado del siguiente estado y la recompensa $S_t \rightarrowtail R_{t+1} + \gamma v(S_{t+1})$\cite[Pág. 198]{sutton_reinforcement_2020}. Se debe actualizar por tanto uno a uno todos los estados, lo cual es inviable cuando el número de estados tiende a infinito.
+
+Para resolver este problema, se introduce una tarea de aproximación de funciones. Esta tarea con lleva una gran complejidad y no se va a trabajar en detalle. Sin embargo, se van a introducir dos conceptos que tomarán relevancia en las futuras tareas de aprendizaje: la parametrización y la caracterización.
+
+\subsection{Parametrización de los estados, $w$}
+Para la aproximación de funciones, se introduce una función de parametrización, $w$.
+
+El objetivo cuando se introduce este nuevo concepto se puede entender la actualización de manera que $s \rightarrowtail u$, donde para cada estado se busca aproximar su valor a un objetivo u \cite[Pág. 198]{sutton_reinforcement_2020}. Se puede entender entonces las actualizaciones como un ejercicio de \emph{aproximación de funciones}, donde se trata de minimizar el error cuadrático (ecuación \ref{ec:verror})\cite[Pág. 199]{sutton_reinforcement_2020}.
+\begin{align}
+    \label{ec:verror}
+    \overline{VE} = \sum_{s \in S}\mu(s)[v_{\pi}-\hat{v}(s,w)]^2
+\end{align}
+donde $\mu(s)$ pondera el valor del error para cada estado, siendo $0\le \mu \le 1$.
+
+Existen distintas maneras de configurar esta parametrización. Esta parte se aleja del enfoque del trabajo, ya que la construcción de estos algoritmos es un tema complejo. En nuestras tareas prácticas el enfoque será construir los entornos para utilizar algoritmos preestablecidos. Sin embargo, cabe destacar un concepto más de este tipo de actualización y aproximación: los vectores de caracterización.
+
+\subsection{Vector de caracterización de los estados, $x$}
+Uno de los casos de aproximación de funciones más importante se recogen en los métodos lineales, donde la función aproximada, $\hat{v}(s, w)$, es una función linear del vector de parametrización, $w$. Para ello, a cada estado $s$, se le asocia un vector tal que $x(s)=(x_1(s), x_2(s), \cdots, x_d(s))^T$, con el mismo número de componentes que $w$. De este modo, se define la función aproximada del valor estado como:
+\begin{align}
+    \hat{v}(s,w)=w^Tx(s)
+\end{align}
+definiendo los estados continuos por un vector de caracterización previamente definido.
+
+Estos dos conceptos definidos, permiten, mediante gradientes, aplicar los algoritmos de aprendizaje clásico para ajustar ambos \cite[Pág. 202 y 203]{sutton_reinforcement_2020}. Se definen entonces el valor de los estados mediante un vector de caracterización y una parametrización. Los algoritmos modernos, que utilizaremos en este trabajo, trabajan en la base de estos conceptos. Estos trabajan con métodos no lineales, haciendo uso de redes neuronales para aproximar la función de valor. Sin embargo, hacen uso del concepto de vector de caracterización, cambiando la parametrización única por múltiples capas de transformaciones. A continuación, se estudiarán por encima algunos de estos algoritmos, resaltando sus principales características y objetivos.
+
+\section{Algoritmos modernos (Aprendizaje profundo)}
+\label{ap:agmodernos}
+Los algoritmos modernos a los que se estudiaran forman parte de una subdisciplina del aprendizaje por refuerzo: el \emph{aprendizaje profundo}. Esta disciplina se diferencia del aprendizaje por refuerzo clásico en su uso de redes neuronales artificiales (\emph{Artificial Neural Networks} o ANNs) \cite[Pág. 475]{sutton_reinforcement_2020}. 
+
+Las ANNs están formadas por una cantidad variable de capas. Las ANNs son alimentadas por un vector, $x$, el cual se va transformando a través de las capas. Cada capa se pude entender como una función. El vector $x$ entra a una primera capa, $f^{(1)}(x)$ y el resultado de esta se alimenta a la segunda, $f^{(2)}(f^{(1)}(x))$ así hasta llegar a una última capa de salida, donde obtendríamos el resultado final de la red \cite[Pág. 164]{Goodfellow-et-al-2016}. Esta última capa devuelve el resultado final. Por ejemplo, para la figura \ref{fig:ANNej}, tendríamos 4 capas, de modo que la función de esta ANNs sería $f(x)=f^{(4)}(f^{(3)}(f^{(2)}(f^{(1)}(x))))$. Cabe resaltar que el único valor conocido desde fuera, sería el resultado final; no se conocerían las salidas del resto de capas, por lo cual se las denomina como \emph{capas ocultas}.
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imagenes/ANNej.png}
+    \caption{Ejemplo de una red neuronal artificial \cite[Pág. 224]{sutton_reinforcement_2020}}
+    \label{fig:ANNej}
+\end{figure}
+
+Atendiendo a las consideraciones del apartado anterior, pese a la no linealidad de estos métodos, se pueden abstraer ambos conceptos a las ANN. Por un lado, mantenemos una parametrización, $w$, que en vez de ser lineal, consiste de una multitud de capas funcionales, $f^{(*)}$. Por otro lado, podemos asociar el vector de caracterización, $x(s)$, con el vector de entrada de la red neuronal, el cual también debe ser una representación del estado. Algunos de estos algoritmos son:
+\begin{itemize}
+    \item \emph{Deep Q-Networks} o \textbf{DQN}: Este algoritmo combina el método \emph{Q-learning} (Off-policy) con el uso de redes neuronales \cite{mnih_human-level_2015}. Consta de uno de los primeros casos de éxito del aprendizaje por refuerzo, en el cual se aprendió a jugar al videojuego Atari a través del estudio de partidas \cite{bellemare_distributional_2023}.
+    \item \emph{Actor-Critic Algorithms}, \textbf{A2C, A3C}: Los algoritmos Actor-Crítico, están basados en dos procesos simultáneos: el actor, encargado de mejorar la política, y el crítico, que evalúa las acciones tomadas por el actor, estimando las funciones de valor \cite[Pág. 331]{sutton_reinforcement_2020}. En la práctica moderna, tanto el actor como el crítico se implementan a través de redes neuronales (A3C) \cite{mnih_asynchronous_2016}.
+    \item \emph{Proximal Policy Optimization} o \textbf{PPO}: El algoritmo PPO parte de la base de los algoritmos actor crítico, introduciendo el concepto de \emph{función objeto sustituta recortada}. Esta función se encarga de limitar la capacidad de variación de la política, haciéndola más estable en su entrenamiento  \cite{schulman_proximal_2017}.
+    \item \emph{Soft Actor-Critic} o \textbf{SAC}: Este algoritmo busca maximizar tanto la recompensa como la entropía \cite{haarnoja_soft_2018}. Es decir, mediante una estructura de actor crítico, busca aumentar la recompensa buscando a su vez continuar explorando distintas acciones.
+\end{itemize}
+
+Estos son meramente algunos de los algoritmos utilizados en aprendizaje profundo. Como veremos en los ejemplos prácticos \ref{ch:araña} y \ref{ch:empuje}, las bibliotecas encargadas de implementar estos algoritmos usan una mezcla de estos para sacar el máximo rendimiento.
+
+Este último apartado finaliza el desarrollo teórico del aprendizaje por refuerzo. En él, se ha construido una base sólida de conceptos clave para realizar los ejercicios prácticos. Para ello, antes de nada, creo importante dedicar un apartado a como se conectan todos estos conceptos dentro del campo de la robótica; así se entenderán mejor las aplicaciones prácticas.
+
+\section{Observaciones para los ejercicios prácticos}
+\label{ap:obsrob}
+
+Este trabajo, como se viene indicando, esta centrado en la aplicación del aprendizaje por refuerzo en la robótica. Para poder llevar estos conceptos teóricos presentados a este campo, es importante diseminar cada uno y ver como se conectan con el campo.
+
+Primero de todo, el aprendizaje por refuerzo se basa en la mejora del rendimiento en una tarea con la experiencia. Es por tanto clave tener clara la tarea a implementar. En el primero de los casos que veremos (capítulo \ref{ch:araña}) se busca enseñar a un robot araña a caminar, mientras que en el segundo caso (capítulo \ref{ch:empuje}), ya dentro del proyecto MetaTool, se enseñará a un robot a empujar un cubo con una herramienta. En ambos casos, se deberá tener clara esta tarea para configurar adecuadamente el entorno.
+
+Una vez definida la tarea, se deberá visualizar la estructura general. Mi primera intuición al entender esta estructura dentro de las tareas a estudiar, fue asociar el agente al propio robot. Sin embargo, después de haberlos implementado, veo que es una afirmación desacertada. El agente en los casos trabajados siempre será la red neuronal sobre la que se trabaja. El robot, en realidad, forma parte del entorno. Esto queda claro cuando gran parte de las observaciones se toman del robot: la posición y velocidad de las articulaciones, la energía empleada, presión sobre este, etc. En los casos estudiados, esta red neuronal es la que decide las acciones que tomará el robot, siendo el verdadero objetivo del aprendizaje.
+
+Los algoritmos, por otro lado, no serán el enfoque principal del trabajo, pero se deberán tener en cuenta a la hora de construir los entornos. Habiendo estudiado la base matemática, desde los procesos Markov hasta los vectores de caracterización, se comprende la importancia de elegir unas buenas observaciones, recompensas y acciones. Las recompensas, por un lado, se traducen directamente en las funciones de valor, las cuales rigen todos los algoritmos vistos. Por otro lado, las observaciones, definirán el vector de caracterización, definiendo como se identificarán los estados y decidiendo las acciones a través de ellas. Por último, las acciones, serán el principal objetivo del estudio; definirlas correctamente es clave para sacar el máximo partido a las capacidades de los robots.
+
+Añadido a este análisis de los algoritmos, las redes neuronales estudiadas también serán importantes, especialmente en la implementación del aprendizaje a la realidad (capítulo \ref{ch:sim2real}). La política final resultante se obtendrá como una red neuronal, por lo que habrá que tener en mente su funcionamiento para implementar en el robot real.
+
+Como se puede observar, todos estos conocimientos teóricos serán utilizados en los próximos capítulos. Aunque algunos de ellos no se muestren directamente, el éxito y entendimiento de los ejercicios vendrá determinado por la comprensión de estos conceptos. Una vez entendidos estos, es hora de proceder a la construcción de entornos. Para ello, utilizaremos la herramienta IsaacLab, la cual analizaremos en detalle antes de comenzar con los ejercicios.
