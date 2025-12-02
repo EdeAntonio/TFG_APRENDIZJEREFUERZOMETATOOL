@@ -1,0 +1,84 @@
+\chapter{Análisis de la herramienta IsaacLab}
+
+En esta capítulo se va a introducir la herramienta IsaacLab. Haciendo uso de la documentación oficial de IsaacLab \cite{isaaclab_docs}, el informe técnico \cite{mittal2025isaaclab} y la biblioteca de APIs \cite{isaaclab_api}. El objetivo es obtener una visión global de cómo funciona la herramienta y cómo generar episodios, para luego después tener la capacidad de entender y crear entornos. En este capítulo se estudiarán los conceptos básicos, los cuales se estudiaran a fondo en los próximos capítulos con ejemplos prácticos.
+
+\section{¿Qué es IsaacLab?}%Lunes
+IsaacLab es un módulo de trabajo para el entrenamiento de robots. Su principal objetivo es simplificar las rutas de trabajo en este tipo de ejercicios \cite{isaaclab_doc}. IsaacLab esta enfocado en el trabajo sobre GPUs, combinando la renderización de imágenes realistas con el motor de físicas \emph{PhysX} para construir simulaciones fieles a la realidad \cite{mittal2025isaaclab}.
+
+IsaacLab está construido sobre IsaacSim. IsaacSim es una aplicación construida sobre NVIDIA Omniverse, la cual permite desarrollar, simular y probar robots controlados por IA en entornos virtuales \cite{Nvidia_isaac_nodate}. IsaacLab se puede entender como un conjunto de herramientas para usar dentro del simulador IsaacSim. De este modo, pese a que se trabajará enteramente con IsaacLab, se adquirirá en este capítulo algunos conceptos de IsaacSim.
+
+Los principales incentivos para usar IsaacLab son  \cite{isaaclab_doc}:
+\begin{itemize}
+    \item Modularidad: capacidad de modificar y añadir nuevos entornos, robots y sensores; pudiendo utilizar todos estos en bibliotecas comunes, limitando las modificaciones.
+    \item Código abierto: mantenimiento de un código abierto y libre para la comunidad. Esto permite completa libertad para modificar cualquier código y adaptarlo a las necesidades del entorno.
+    \item Gran cantidad de ejemplos y recursos: IsaacLab cuenta con un gran número de entornos, sensores y tareas preparadas para el entrenamiento. Esto permite partir de una base sobre la que construir las tareas personalizadas.
+\end{itemize}
+
+Por estos motivos, se ha escogido esta herramienta para realizar los entrenamientos. La principal desventaja de esta herramienta es la necesidad de utilizar un hardware específico, las tarjetas RTX de Nvidia. Sin ellas, no se puede utilizar esta herramienta, ya que IsaacLab esta preparado para utilizarlas directamente. Esto saca el máximo partido a las tarjetas gráficas, pero limita el uso a la disposición de estos recursos. Por la parte de este proyecto, se dispuso de estas tarjetas gracias a la cesión de un ordenador por parte del equipo MetaTool. Aprovecho este momento para dar las gracias a Virgilio Gómez Lambo, tanto por los recursos prestados como por su ayuda en el entendimiento de la herramienta y el RL.
+
+En conclusión, IsaacLab es una herramienta para realizar ejercicios de aprendizaje por refuerzo en IsaacSim. Con esto en mente, se va estudiar cual es la estructura externa de la herramienta.
+
+\section{Estrutura de la herramienta}%Lunes
+La herramienta IsaacLab se centra en la construcción de los entornos, los cuales luego se someten al aprendizaje. Estos entornos, reciben las acciones del agente (la red neuronal) y procesando las recompensas y observaciones correspondientes \cite[Walkthrough, Enviroment Background Design]{isaaclab_doc}. Para la construcción de estos entornos, IsaacLab utiliza la misma estructura que IsaacSim. Esta estructura define y gestiona los entornos. Se puede imaginar esta estructura como una muñeca rusa, donde cada nivel contiene al resto (figura \ref{fig:lab_struct}).
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imagenes/labStruct.png}
+    \caption{Estructura de la herramienta IsaacLab \cite{isaaclab_doc}.}
+    \label{fig:lab_struct}
+\end{figure}
+
+El primer nivel consiste de la aplicación. La aplicación gestiona los recursos del sistema y es la encargada de lanzar y destruir la simulación \cite{isaaclab_doc}. La aplicación se puede gestionar a partir de la API \emph{isaaclab.app} \cite{isaaclab_api}. Esta API se encarga de gestionar el lanzamiento de la aplicación, así como los distintos argumentos pertinentes a esta.
+
+Esta aplicación, contiene la simulación, la cual, como ya se ha mencionado, es creada y destruida por esta. La simulación es la encargada de definir como funcionará las físicas, el tiempo y la gravedad. La simulación divide el ejercicio en múltiples instantes de tiempo, dividiendo las tareas de cálculo en subprocesos \cite{isaaclab_doc}. La simulación, al igual que la aplicación, tiene su propia API, \emph{isaaclab.sim} \cite{isaaclab_api}. Con esta, se definen parámetros como el tamaño de paso o la fuerza de la gravedad.
+
+La simulación a la vez contiene todos los elementos relevantes a esta, los cuales agrupamos en el concepto de \emph{mundo} \cite{isaaclab_doc}. Este mundo se define por el origen de coordenadas, el cual se toma como referencia para ubicar el resto de elementos. El mundo se estructura en dos elementos más: el escenario y la escena. El escenario, por un lado, 
+provee de un contexto geográfico dentro de la escena \cite{isaaclab_doc}. Es decir, permite utilizar dentro de las escenas un origen de coordenadas propio. La escena, por su parte, será la encargada de administrar los elementos que conforman el entorno. 
+
+El entorno como tal, estará organizado por tanto en un escenario (figura \ref{fig:lab_escena}) y administrado por la escena. Es por esto que la escena tiene su propia API, \emph{isaaclab.scene} \cite{isaaclab_api}, la cual nos permite gestionar y obtener datos de todos los elementos del entorno. Estos elementos se organizan en \emph{primarios}, elementos separados dentro de la organización del escenario que son importados a la escena a través de un archivo USD (figura \ref{lab_escena}) \cite{isaaclab_doc}. USD, por su propia parte, es el lenguaje de descripción robots y entornos \cite{isaaclab_usd}. En este trabajo no manejaremos este lenguaje, pero si utilizaremos los ficheros de este tipo para importar los primarios.
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imagenes/labScene.png}
+    \caption{Organización de un escenario dentro de IsaacLab \cite{isaaclab_doc}.}
+    \label{fig:lab_escena}
+\end{figure}
+
+IsaacLab entonces esta organizado en 5 conceptos fundamentales. Se asienta una referencia central, el mundo. Este mundo contiene el escenario y la escena, los cuales organizan los entornos. El mundo está contenido por la simulación, la cual define las propiedades de este. Por último, la simulación es gestionada por la aplicación. Esta es la estructura externa a los entornos, sobre la cual se asientan. A continuación, se estudiará que maneras hay de construir los entornos.
+
+\section{Arquitectura de entornos}
+Teniendo en cuenta la estructura anterior, se procede ahora a estudiar la construcción de entornos. Se recuerda que los entornos son los encargados de recoger las acciones del cliente y procesar las observaciones y recompensas. A parte de esta definición, se debe tener en cuenta el campo en el que se trabaja, la robótica. Por esto, el eje central de todos los entornos será el robot. Con todo esto en mente, se pueden definir los objetivos del diseño de entornos \cite{isaaclab_doc}:
+\begin{enumerate}
+    \item Definir el robot y las acciones.
+    \item Definir los parámetros de la simulación.
+    \item Definir la forma de clonado y el número de entornos.
+    \item Calcular y entregar las acciones y recompensas
+    \item Definir los estados absorbentes y los reinicios.
+\end{enumerate}
+
+Los entornos estarán constituidos por un robot y el resto de su entorno (objetos, obstáculos, efectos visuales, etc.). Sobre este entorno se definirán las acciones (asociadas directamente al robot), las recompensas y las observaciones. También deberemos definir dentro de este entorno los estados absorbentes (finales). En algunas ocasiones el robot alcanzará un estado donde no será relevant continuar con el aprendizaje. En ese estado, se cerrará el episodio y se reiniciará el entorno. Por último, IsaacLab nos permite optimizar el tiempo de entrenamiento clonado los entornos. De este modo, en vez de tener un único entorno, se pueden tener múltiples entornos entrenando simultáneamente.
+
+Para definir todos estos aspectos, existen dos principales maneras de programar los entornos:
+
+\subsection{Direct Based}%Miércoles
+La manera directa, como su propio nombre indica, es la más franca de las dos. Esta forma permite implementar todos los puntos antes mencionados en un mismo \emph{script}. Los entornos directos heredan de una clase \emph{DirectRLEnv}, dentro de la API \emph{isaaclab.envs}. Para programar el entorno entonces, se definen las funciones abstractas de esta clase. Seguidamente, la clase se envuelve en un \emph{wrapper} y se alimenta a una de las bibliotecas con los algoritmos de aprendizaje por refuerzo. Este proceso se verá en detalle en el apartado \ref{ap:entrenamiento}. A su vez, un ejemplo de este tipo de construcción se verá en el capítulo \ref{ch:araña}.
+ 
+En la figura \ref{fig:lab_scheme_direct} se puede ver un esquema de las interacciones de la clase \emph{DirectRLEnv}, bajo el nombre \emph{Enviroment Scripting}. Esta clase se encarga de comunicar el entrono (la escena) y el agente. Por tanto, volviendo a la estructura del aprendizaje por refuerzo (\ref{ap:StrAR}), esta clase representaría las interacciones entre ambos elementos.
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imagenes/labScene.png}
+    \caption{Organización de un escenario dentro de IsaacLab \cite{isaaclab_doc}.}
+    \label{fig:lab_scheme_direct}
+\end{figure}
+
+
+\subsection{Manager Based}%Miércoles
+
+
+\section{Estructuras de datos}%Viernes
+\subsection{Clases}
+\subsection{Tensores: PyTorch}
+
+\section{Entrenamiento de agentes}%Sábado
+\label{ap:entrenamiento}
+\section{Evaluación de agentes}%Sábado
+\section{Análisis Global}%Sábado
+
