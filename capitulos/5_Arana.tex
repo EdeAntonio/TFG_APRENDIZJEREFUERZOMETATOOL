@@ -1,3 +1,35 @@
 \chapter{Estudio caso locomoción}
+\label{ch:arana}
+En este capítulo, se va a estudiar un ejemplo de la herramienta IsaacLab. Con este estudio se pretende analizar las distintas partes de la construcción de entornos a través de la forma directa. Primero, se analizará el caso y el objetivo de este. Después, se realizará un diagrama de clases con las principales clases y sus métodos y atributos más relevantes. Una vez definido el diagrama de clases, se analizará cada una detenidamente, entrando en detalle sobre sus métodos y atributos; se verá la función y definición de cada uno. A continuación, se estudiará el registro a través de \emph{gymnasium}, repasando a su vez la configuración del agente. Registrado el entorno, se procederá al entrenamiento de este y a la evaluación del resultado final. Por último, se propondrán algunas mejoras para futuros estudios de aprendizaje.
 
 \section{Descripción caso práctivo}
+El primer ejemplo escogido para el estudio es el entorno "Isaac-Ant-v0". En este entorno se busca enseñar a andar a un robot araña de cuatro patas, en IsaacLab llamado \emph{Ant} (figura \ref{fig:antrobot}). El objetivo principal será desplazar el robot en un dirección concreta.
+\begin{figure}[ht]
+    \label{antrobot}
+    \centering
+    \includegraphics[width=\linewidth]{imagenes/UMLarana.pdf}
+    \caption{Robot araña o \emph{Ant}, objetivo del aprendizaje para el primer caso práctico.}
+\end{figure}
+
+Analizar este ejercicio es una parte integral de este trabajo. El objetivo a futuro de este trabajo es crear una guía para realizar futuros ensayos de aprendizaje por refuerzo. Este caso, se relaciona directamente con dos proyectos internos de la universidad, \emph{Romerín} \cite{Romerin_Descrip} y \emph{Tarántula} (en fase de desarrollo). Por tanto, este análisis tiene dos objetivos: analizar el problema concreto de locomoción para robots araña y estudiar un caso práctico de la programación directa.
+
+El código de este ejercicio se ha extraído de la herramienta IsaacLab; este se puede encontrar dentro del repositorio de la herramienta \cite{mittal2025isaaclab}, accesible desde la documentación \cite{isaaclab_doc}. En este capítulo, se analizará el código desde el diagrama de clases; sin embargo, se recomienda encarecidamente acompañar la lectura con él código. Durante el análisis, se irá indicando donde se encuentra la parte del código a la cual se hace referencia. Añadido a esto, se ha preparado un proyecto de IsaacLab con todos los códigos utilizados; por lo cual, se indicará la referencia del código de IsaacLab y el proyecto. Se procederá ahora a la definición del diagrama de clases y su estudio.
+
+\section{Diagrama de Clases}
+
+\begin{landscape}
+\begin{figure}[ht]
+    \label{UMLarana}
+    \centering
+    \includegraphics[width=\linewidth]{imagenes/UMLarana.pdf}
+    \caption{Diagrama UML del ejemplo araña, programación directa.}
+\end{figure}
+\end{landscape}
+
+\section{Análisis de clases}
+
+\section{Registro del Entorno}
+
+\section{Aprendizaje y Evaluación}
+
+\section{Posibles mejoras}

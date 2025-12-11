@@ -1,9 +1,9 @@
 \chapter{Análisis de la herramienta IsaacLab}
 
-En esta capítulo se va a introducir la herramienta IsaacLab. Haciendo uso de la documentación oficial de IsaacLab \cite{isaaclab_docs}, el informe técnico \cite{mittal2025isaaclab} y la biblioteca de APIs \cite{isaaclab_api}. El objetivo es obtener una visión global de cómo funciona la herramienta y cómo generar episodios, para luego después tener la capacidad de entender y crear entornos. En este capítulo se estudiarán los conceptos básicos, los cuales se estudiaran a fondo en los próximos capítulos con ejemplos prácticos.
+En esta capítulo se va a introducir la herramienta IsaacLab. Haciendo uso de la documentación oficial de IsaacLab \cite{isaaclab_doc}, el informe técnico \cite{mittal2025isaaclab} y la biblioteca de APIs \cite{isaaclab_api}. El objetivo es obtener una visión global de cómo funciona la herramienta y cómo generar episodios, para luego después tener la capacidad de entender y crear entornos. En este capítulo se estudiarán los conceptos básicos, los cuales se estudiaran a fondo en los próximos capítulos con ejemplos prácticos.
 
 \section{¿Qué es IsaacLab?}%Lunes
-IsaacLab es un módulo de trabajo para el entrenamiento de robots. Su principal objetivo es simplificar las rutas de trabajo en este tipo de ejercicios \cite{isaaclab_doc}. IsaacLab esta enfocado en el trabajo sobre GPUs, combinando la renderización de imágenes realistas con el motor de físicas \emph{PhysX} para construir simulaciones fieles a la realidad \cite{mittal2025isaaclab}.
+IsaacLab es un módulo de trabajo para el entrenamiento de robots en python. Su principal objetivo es simplificar las rutas de trabajo en este tipo de ejercicios \cite{isaaclab_doc}. IsaacLab esta enfocado en el trabajo sobre GPUs, combinando la renderización de imágenes realistas con el motor de físicas \emph{PhysX} para construir simulaciones fieles a la realidad \cite{mittal2025isaaclab}.
 
 IsaacLab está construido sobre IsaacSim. IsaacSim es una aplicación construida sobre NVIDIA Omniverse, la cual permite desarrollar, simular y probar robots controlados por IA en entornos virtuales \cite{Nvidia_isaac_nodate}. IsaacLab se puede entender como un conjunto de herramientas para usar dentro del simulador IsaacSim. De este modo, pese a que se trabajará enteramente con IsaacLab, se adquirirá en este capítulo algunos conceptos de IsaacSim.
 
@@ -64,21 +64,98 @@ La manera directa, como su propio nombre indica, es la más franca de las dos. E
 En la figura \ref{fig:lab_scheme_direct} se puede ver un esquema de las interacciones de la clase \emph{DirectRLEnv}, bajo el nombre \emph{Enviroment Scripting}. Esta clase se encarga de comunicar el entrono (la escena) y el agente. Por tanto, volviendo a la estructura del aprendizaje por refuerzo (\ref{ap:StrAR}), esta clase representaría las interacciones entre ambos elementos.
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.8\textwidth]{imagenes/labScene.png}
-    \caption{Organización de un escenario dentro de IsaacLab \cite{isaaclab_doc}.}
+    \includegraphics[width=0.8\textwidth]{imagenes/labSchemeDirect.png}
+    \caption{Diagrama para el modo directo de IsaacLab \cite{isaaclab_doc}.}
     \label{fig:lab_scheme_direct}
 \end{figure}
 
+En conclusión, la manera directa se centra en una única clase para la organización de las interacciones entre el entorno y el agente.
 
 \subsection{Manager Based}%Miércoles
+La manera basada en manejadores (\emph{Manager-based}), descompone las distintas partes de las interacciones en componentes individuales, los manejadores \cite{isaaclab_doc}. Estos manejadores aíslan distintos aspectos de la comunicación y gestión del agente y entorno, facilitando la organización de estos.
 
+Entre los distintos manejadores están \cite{isaaclab_doc}:
+\begin{itemize}
+    \item Manejador de eventos (\emph{Event Manager}): se encarga de definir y administrar aspectos del entorno. Esta clase es la encargada de ir cambiando parámetros de la escena durante los entrenamientos; de esta manera se pueden obtener entornos versátiles y variados durante un mismo entrenamiento. 
+    \item Manejador de observaciones (\emph{Observation Manager}): se encarga de definir y gestionar las observaciones.
+    \item Manejador de acciones (\emph{Action Manager}): se encarga de definir y gestionar las acciones.
+    \item Manejador de recompensas(\emph{Reward Manager}): se encarga de definir y gestionar las recompensas.
+    \item Manejador de objetivos (\emph{Command Manager}): se encarga de variar los objetivos del entrenamiento, siendo capaz de generar distintos valores en función de un rango.
+    \item Manejador de finalización (\emph{Termination Manager}): se encarga de definir las condiciones en las cuales se pone fin al episodio.
+\end{itemize}
+
+Estos son los principales manejadores que se utilizarán en los entornos. Existe un manejador más, el manejador del currículum (\emph{Curriculum Manager}), encargado de crear una hoja de ruta para el entrenamiento. En este trabajo, al trabajar con objetivos concretos, no será necesario, bastando el manejador de órdenes para darle flexibilidad al ejercicio. Todos estos manejadores se alojan en una clase global, \emph{ManagerBasedRLEnv}, la cual se encarga de coordinarlos. Esta clase, al igual que la de modo directo, se encuentra dentro de la API \emph{isaaclab.envs} \cite{isaaclab_api}. Los manejadores, se desarrollarán como clases pertenecientes a esta clase global. Estas clases se encuentran dentro de la API \emph{isaaclab.managers} \cite{isaaclab_api}.
+
+Más adelante, al entrar a estudiar el proyecto MetaTool, se estudiarán algunos ejemplos de esta forma de conformar entornos. El concepto más importante dentro de esta forma es el de término (\emph{Term}). Estos manejadores, se conforman de múltiples términos, los cuales descomponen aún más el ejercicio. Por ejemplo, para un manejador de observaciones con tres observaciones distintas (posición de las articulaciones, velocidad de las articulaciones y posición de un objeto) se tendrán tres términos distintos. De este modo, solo hace falta definir las observaciones individualmente en estos términos, el manejador después se encarga de entregársela al agente.
+
+En el modo basado en manejadores entonces, las interacciones entre el agente y el entorno, así como su administración, se fragmenta en múltiples manejadores, facilitando la definición y la gestión de los distintos elementos. Esto lo podemos ver en la figura \ref{fig:lab_scheme_manager}.
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imagenes/labSchemeManager.png}
+    \caption{Diagrama para el modo basado en manejadores de IsaacLab \cite{isaaclab_doc}.}
+    \label{fig:lab_scheme_manager}
+\end{figure}
+
+Comparando ambas maneras de programar, el modo basado en manejadores permite tener un script más organizado, facilitando las modificaciones. Gracias a su formato de clases, tiene una gran capacidad modular; sin embargo, esta forma pierde parte del control. El modo directo, pese a ser más complicado de visualizar y gestionar, permite mantener un control sobre la definición de los elementos y como se estructuran. Ambos modos de programar son útiles; por sus facilidades el modo de manejadores se priorizará. En este trabajo, para tener primero una visión global de la construcción de entornos, se estudiará a fondo un caso directo. Una vez comprendida esta forma de trabajo, se continuará en MetaTool con el modo de manejadores. 
+
+Ambas formas de programar hacen uso de dos conceptos fundamentales, las clases y los tensores. Las clases, tanto en el modo basado en manejadores como en el modo directo, son fundamentales; los entornos en ambas formas se definen a través de clases (\emph{DirectRLEnv} y \emph{ManagerBasedRLEnv}). Dentro de estas clases, se encontrará toda la información relevante del entorno, que en su mayoría estará definida como tensores \emph{Torch}. A continuación, se entrará un poco más en detalle sobre esta estructuración de la información.
 
 \section{Estructuras de datos}%Viernes
+Pese a que este trabajo se centre en la construcción de entornos, eso no significa que se deba perder referencia de la base matemática y los algoritmos de entrenamiento. Se debe poder definir correctamente todos los datos necesarios para que los algoritmos puedan trabajar correctamente. Es por esto que se realizó un estudio exhaustivo de la teoría del aprendizaje por refuerzo clásico y por lo que ahora se estudiará con detalle como se almacenan la información del entorno, para así poder comprender y definir las observaciones, recompensas y acciones correctamente.
+
+Como se ha mencionado en el apartado anterior, existen dos estructuras principales de datos, las clases y los tensores. Referente a esto, cabe hacer una aclaración. Dentro del lenguaje de programación python hay multiples estructuras de datos relevantes: variables, métodos, etiquetas, etc. Sin embargo, estos conceptos son propios de python por lo que no son de interés en este trabajo. Sin embargo, dentro de IsaacLab, toman especial relevancia las clases (en especial las clases de configuración) y los tensores (trabajados con \emph{PyTorch}). A continuación, veremos el motivo de esta relevancia y los aspectos más interesantes.
+
 \subsection{Clases}
+Las clases permiten agrupar datos y funcionalidades dentro de un objeto \cite[Tutorials, 9. Classes]{python_docs}. Es por tanto un elemento clave dentro de la estructura de datos de los entornos. No solo los manejadores y los entornos globales se estructuran en clases, sino los propios robots, los primitivos o las escenas, entre otros, también se estructuran en clases. Como veremos profundamente en los ejemplos, se accederá a todos los datos desde estas clases.
+
+Las clases como tal, son un elemento básico de la programación orientada a objetos, por lo que se presupone un conocimiento básico sobre estas. Sin embargo, las clases dentro de IsaacLab se defines de una manera estandarizada, a través de otras clases \cite{isaaclab_doc}.
+
+Las clases establecidas dentro de IsaacLab se definen a través de otra clase, las clases de configuración. En estas clases se definen los parámetros correspondientes a la clase que se quiere definir. Por ejemplo, si se quiere instanciar una clase \emph{InteractiveScene}, para crear una escena interactiva, se debe definir primero una clase \emph{InteractiveSceneCfg}. Estas clases de configuración, las cuales se verán en detalle en los ejemplos, se definen a través del decorador \emph{configclass}. Un decorador es una función que, en este caso, toma una clase como argumento y devuelve una clase modificada \cite[Glossary, decorator]{python_docs}. Este decorador prepara la clase para trabajarse como un argumento.
+
+Dentro de las clases, se encontrarán datos relevantes al entorno. Por ejemplo, en una clase \emph{Articulation}, se encuentra una variable \emph{data}, que es a su vez es una clase \emph{ArticulationData}, la cual contiene información relevante al robot, como la posición de las articulaciones, \emph{Articulation.data.jointpos}. Esta variable final, podría expresarse como un vector sencillo, con dimensión igual al número de articulaciones. No obstante, al trabajar con múltiples entornos clonados en paralelo, esto no es eficaz; pues deberíamos entonces tener una clase para cada entorno. Para compactar la información, IsaacLab usa tensores de PyTorch. En el siguiente apartado se estudiará qué es un tensor, cómo se utilizan y porqué son importantes.
+
 \subsection{Tensores: PyTorch}
+Un tensor es un matriz multi-dimensional de datos de un mismo tipo \cite[torch.Tensor]{pytorch_docs}. Un tensor tiene un número de dimensiones, a los que llamaremos ejes, y cada una de estas dimensiones tiene un tamaño, al que llamaremos tamaño de eje. Este tipo de dato permite organizar grandes cantidades de información en un mismo sitio. Por ejemplo, si se tienen 10 entornos, donde en cada uno se tiene un robot con una cámara, donde dicha cámara tiene una resolución de 800x400, se podría definir un tensor que guardase los valores RGB de estas cámaras. Dicho tensor tendría la siguiente forma: [10, 800, 400, 3]. Este tensor tendría 4 ejes, con tamaños respectivos de 10, 800, 400 y 3. De este modo, en una matriz de 4 dimensiones, se almacena de forma comprensiva el valor de todos los bits de las 10 cámaras. Cada eje, contiene a su eje inmediatamente inferior. El eje superior de este tensor sería el 10, siendo este el eje 0. Cada elemento de este eje, contiene el eje 1, con su tamaño de 800 elementos. Cada uno de esos elementos del eje 1, contiene un eje 2; y de igual manera con el eje 3 (o -1), siendo contenido por cada uno de los elementos del eje 2. Este tensor, por tanto, tendría 9.600.000 elementos. Cada uno de estos elementos, debe ser de un dato concreto. 
+
+IsaacLab hace uso de estos tensores, mediante la herramienta PyTorch, para poder almacenar toda la información de los entornos en una sola clase. PyTorch, por su parte, es una librería centrada en la optimización de operaciones con tensores a través de GPU \cite{pytorch_docs}. IsaacLab utiliza esta librería dentro de sus librerías de algoritmos para el aprendizaje, por lo que todos los datos que se pretendan trabajar deberán manejarse mediante estos tensores. Esto incluye las observaciones, recompensas y acciones. Por esto, manejar correctamente los tensores es prioritario para la construcción de los entornos y sus interacciones con el agente. 
+
+Dentro de los ejemplos, estudiaremos detenidamente las distintas operaciones que se vayan utilizando. No obstante, antes de empezar a estudiarlos, se debe estudiar como se entrenan finalmente los entornos, lo cual se verá en el próximo apartado.
 
 \section{Entrenamiento de agentes}%Sábado
 \label{ap:entrenamiento}
+
+Una vez configurados los entornos y las interacciones, se debe entrenar el agente en él. El enfoque de este trabajo esta primera parte, por lo que no se entrará en detalle en el propio aprendizaje y sus algoritmos. IsaacLab provee de una serie de librerías, las cuales aportan los algoritmos de aprendizaje. Existen 4 librerías principales \cite{isaaclab_doc}:
+\begin{itemize}
+    \item SKRL \cite{serrano2023skrl}: se enfoca en la modularidad, simplicidad y transparencia. Es especialmente útil si se pretende modificar los algoritmos para experimentar o investigar.
+    \item RSL-RL \cite{schwarke2025rslrl}: se crea pensando en robótica, manipulación y locomoción, siendo la más específica de las tres. Esto lleva también a una corta documentación y alta complejidad.
+    \item RL-Games \cite{rl-games2021}: esta biblioteca busca la optimización en entrenamientos intensivos y multi-agentes; especialmente útil para entornos complejos.
+    \item Stable-Baselines \cite{stable-baselines3}: de las 4 librerías, es la más documentada y con más comunidad y soporte, sin embargo, su presencia en ejemplos y sus capacidades son bastante limitadas.
+\end{itemize} 
+
+Teniendo en cuenta las características de todas estas librerías, la que mejor se adapta a este trabajo es la librería RSL-RL. Al no modificar ni entrar a estudiar la composición de su algoritmo, no nos afecta en gran medida la falta de documentación. Por otro lado, su especialización en robótica la hace tener el mejor rendimiento ente todas las bibliotecas \cite{isaaclab_doc}.
+
+Para poder utilizar las bibliotecas, IsaacLab provee de un proceso para registrar y configurar agentes, \emph{gymnasium} \cite{towers2024gymnasium}. \emph{Gymnasium}, es una biblioteca de python en código abierto. Provee de una API para comunicar los algoritmos de aprendizaje con los entornos definidos. Para ello, registraremos la configuración de los entornos a través de esta API, creando asi una tarea con una configuración de agente asociada. De esta manera, al ejecutar los scripts de entrenamiento, \emph{train.py}, se puede seleccionar la tarea con el argumento \emph{--task} y realizar el entrenamiento.
+
+El producto final del entrenamiento es la red neuronal parametrizada, la cual se guarda dentro del proyecto o la herramienta IsaacLab. Antes de poder utilizar esta red, se debe evaluar como se comporta; para lo cual tenemos distintos enfoques. En el próximo apartado se estudiará cada uno de ellos.
+
 \section{Evaluación de agentes}%Sábado
+
+Una vez obtenida la red neuronal, que vendría ser el agente entrenado, el siguiente objetivo consiste en implementar esta red neuronal en el robot real. Este proceso conforma un problema en su conjunto llamado \emph{sim2real} \cite{sim2realpaper}. Este problema se verá en detalle en el capítulo \ref{ch:sim2real}, donde integraremos alguna de las redes neuronales generadas en robots reales. Sin embargo, es prioritario para la seguridad del robot y de los operarios probar antes esta red neuronal en un entorno seguro. Por esto, se seguirá el siguiente procedimiento:
+\begin{itemize}
+    \item \emph{Sim-in-Sim}: Primero, mediante las herramientas de IsaacLab, se probará la red neuronal en la mismo sistema donde se ha implementado el aprendizaje.
+    \item \emph{Sim2Sim}: Segundo, se realizará una simulación con herramientas externas para probar el comportamiento del robot en un entorno que tenga en cuenta las características reales de este.
+    \item \emph{Sim2Real}: Por último, se implementará la red neuronal en el robot real.
+\end{itemize}
+
+El primer paso será el único que se realice con la herramienta IsaacLab. Esta provee en su biblioteca de algoritmos de un script para poder probar el resultado del aprendizaje, \emph{play.py}. Con este script se puede implementar la red neuronal sobre el mismo entorno y simulación entrenada. De este modo, se puede estudiar detenidamente las distintas recompensas y a través de ellas valorar el trabajo del robot.
+
+Para el resto de pasos, se utilizarán otro tipo de herramientas y códigos, por lo que este también es la última utilización de la herramienta IsaacLab. Estudiando todas las utilidades de IsaacLab, se puede observar como abarca la gran parte del trabajo a realizar. Es por esto que antes de entrar a los ejemplos prácticos, se debe abstraer una idea general de la herramienta.
+
 \section{Análisis Global}%Sábado
+
+IsaacLab es una de las principales herramientas para el aprendizaje por refuerzo en la robótica. Su aplicación base, IsaacSim, está preparada para afrontar las dificultades que afronta la IA. Además, su utilización del potencial de las tarjetas GPU, las RTX, pese a limitar el uso a este hardware, permiten realizar ejercicios complejos de aprendizaje en poco tiempo.
+
+La construcción de entornos dentro de esta herramienta, por otro lado, requiere de un conocimiento extenso de las API y librerías asociadas. Sin embargo, las dos formas de programación permiten libertad a la hora de desarrollar. Añadido a esto, una vez entendido el funcionamiento de la herramienta, construir y modificar entornos se vuelve fácil y rutinario. Gracias a esto, y a la gran cantidad de ejemplos, se encuentra que para la mayoría de ejercicios se puede trabajar sobre estos, adaptándolos al entorno a construir.
+
+En el próximo capítulo, veremos un ejemplo de la programación directa. Se analizará cuidadosamente y se propondrán algunas mejoras.
 
