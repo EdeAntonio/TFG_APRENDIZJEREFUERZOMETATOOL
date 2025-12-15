@@ -19,6 +19,7 @@ Por estos motivos, se ha escogido esta herramienta para realizar los entrenamien
 En conclusión, IsaacLab es una herramienta para realizar ejercicios de aprendizaje por refuerzo en IsaacSim. Con esto en mente, se va estudiar cual es la estructura externa de la herramienta.
 
 \section{Estrutura de la herramienta}%Lunes
+\label{ap:structisaac}
 La herramienta IsaacLab se centra en la construcción de los entornos, los cuales luego se someten al aprendizaje. Estos entornos, reciben las acciones del agente (la red neuronal) y procesando las recompensas y observaciones correspondientes \cite[Walkthrough, Enviroment Background Design]{isaaclab_doc}. Para la construcción de estos entornos, IsaacLab utiliza la misma estructura que IsaacSim. Esta estructura define y gestiona los entornos. Se puede imaginar esta estructura como una muñeca rusa, donde cada nivel contiene al resto (figura \ref{fig:lab_struct}).
 \begin{figure}[h!]
     \centering
@@ -59,9 +60,9 @@ Los entornos estarán constituidos por un robot y el resto de su entorno (objeto
 Para definir todos estos aspectos, existen dos principales maneras de programar los entornos:
 
 \subsection{Direct Based}%Miércoles
-La manera directa, como su propio nombre indica, es la más franca de las dos. Esta forma permite implementar todos los puntos antes mencionados en un mismo \emph{script}. Los entornos directos heredan de una clase \emph{DirectRLEnv}, dentro de la API \emph{isaaclab.envs}. Para programar el entorno entonces, se definen las funciones abstractas de esta clase. Seguidamente, la clase se envuelve en un \emph{wrapper} y se alimenta a una de las bibliotecas con los algoritmos de aprendizaje por refuerzo. Este proceso se verá en detalle en el apartado \ref{ap:entrenamiento}. A su vez, un ejemplo de este tipo de construcción se verá en el capítulo \ref{ch:araña}.
+La manera directa, como su propio nombre indica, es la más franca de las dos. Esta forma permite implementar todos los puntos antes mencionados en un mismo \emph{script}. Los entornos directos heredan de una clase \clase{DirectRLEnv}, dentro de la API \emph{isaaclab.envs}. Para programar el entorno entonces, se definen las funciones abstractas de esta clase. Seguidamente, la clase se envuelve en un \emph{wrapper} y se alimenta a una de las bibliotecas con los algoritmos de aprendizaje por refuerzo. Este proceso se verá en detalle en el apartado \ref{ap:entrenamiento}. A su vez, un ejemplo de este tipo de construcción se verá en el capítulo \ref{ch:araña}.
  
-En la figura \ref{fig:lab_scheme_direct} se puede ver un esquema de las interacciones de la clase \emph{DirectRLEnv}, bajo el nombre \emph{Enviroment Scripting}. Esta clase se encarga de comunicar el entrono (la escena) y el agente. Por tanto, volviendo a la estructura del aprendizaje por refuerzo (\ref{ap:StrAR}), esta clase representaría las interacciones entre ambos elementos.
+En la figura \ref{fig:lab_scheme_direct} se puede ver un esquema de las interacciones de la clase \clase{DirectRLEnv}, bajo el nombre \emph{Enviroment Scripting}. Esta clase se encarga de comunicar el entrono (la escena) y el agente. Por tanto, volviendo a la estructura del aprendizaje por refuerzo (\ref{ap:StrAR}), esta clase representaría las interacciones entre ambos elementos.
 \begin{figure}[h!]
     \centering
     \includegraphics[width=0.8\textwidth]{imagenes/labSchemeDirect.png}
@@ -76,15 +77,15 @@ La manera basada en manejadores (\emph{Manager-based}), descompone las distintas
 
 Entre los distintos manejadores están \cite{isaaclab_doc}:
 \begin{itemize}
-    \item Manejador de eventos (\emph{Event Manager}): se encarga de definir y administrar aspectos del entorno. Esta clase es la encargada de ir cambiando parámetros de la escena durante los entrenamientos; de esta manera se pueden obtener entornos versátiles y variados durante un mismo entrenamiento. 
-    \item Manejador de observaciones (\emph{Observation Manager}): se encarga de definir y gestionar las observaciones.
-    \item Manejador de acciones (\emph{Action Manager}): se encarga de definir y gestionar las acciones.
-    \item Manejador de recompensas(\emph{Reward Manager}): se encarga de definir y gestionar las recompensas.
-    \item Manejador de objetivos (\emph{Command Manager}): se encarga de variar los objetivos del entrenamiento, siendo capaz de generar distintos valores en función de un rango.
-    \item Manejador de finalización (\emph{Termination Manager}): se encarga de definir las condiciones en las cuales se pone fin al episodio.
+    \item Manejador de eventos (\clase{EventManager}): se encarga de definir y administrar aspectos del entorno. Esta clase es la encargada de ir cambiando parámetros de la escena durante los entrenamientos; de esta manera se pueden obtener entornos versátiles y variados durante un mismo entrenamiento. 
+    \item Manejador de observaciones (\clase{Observation Manager}): se encarga de definir y gestionar las observaciones.
+    \item Manejador de acciones (\clase{Action Manager}): se encarga de definir y gestionar las acciones.
+    \item Manejador de recompensas(\clase{Reward Manager}): se encarga de definir y gestionar las recompensas.
+    \item Manejador de objetivos (\clase{Command Manager}): se encarga de variar los objetivos del entrenamiento, siendo capaz de generar distintos valores en función de un rango.
+    \item Manejador de finalización (\clase{Termination Manager}): se encarga de definir las condiciones en las cuales se pone fin al episodio.
 \end{itemize}
 
-Estos son los principales manejadores que se utilizarán en los entornos. Existe un manejador más, el manejador del currículum (\emph{Curriculum Manager}), encargado de crear una hoja de ruta para el entrenamiento. En este trabajo, al trabajar con objetivos concretos, no será necesario, bastando el manejador de órdenes para darle flexibilidad al ejercicio. Todos estos manejadores se alojan en una clase global, \emph{ManagerBasedRLEnv}, la cual se encarga de coordinarlos. Esta clase, al igual que la de modo directo, se encuentra dentro de la API \emph{isaaclab.envs} \cite{isaaclab_api}. Los manejadores, se desarrollarán como clases pertenecientes a esta clase global. Estas clases se encuentran dentro de la API \emph{isaaclab.managers} \cite{isaaclab_api}.
+Estos son los principales manejadores que se utilizarán en los entornos. Existe un manejador más, el manejador del currículum (\clase{Curriculum Manager}), encargado de crear una hoja de ruta para el entrenamiento. En este trabajo, al trabajar con objetivos concretos, no será necesario, bastando el manejador de órdenes para darle flexibilidad al ejercicio. Todos estos manejadores se alojan en una clase global, \clase{ManagerBasedRLEnv}, la cual se encarga de coordinarlos. Esta clase, al igual que la de modo directo, se encuentra dentro de la API \emph{isaaclab.envs} \cite{isaaclab_api}. Los manejadores, se desarrollarán como clases pertenecientes a esta clase global. Estas clases se encuentran dentro de la API \emph{isaaclab.managers} \cite{isaaclab_api}.
 
 Más adelante, al entrar a estudiar el proyecto MetaTool, se estudiarán algunos ejemplos de esta forma de conformar entornos. El concepto más importante dentro de esta forma es el de término (\emph{Term}). Estos manejadores, se conforman de múltiples términos, los cuales descomponen aún más el ejercicio. Por ejemplo, para un manejador de observaciones con tres observaciones distintas (posición de las articulaciones, velocidad de las articulaciones y posición de un objeto) se tendrán tres términos distintos. De este modo, solo hace falta definir las observaciones individualmente en estos términos, el manejador después se encarga de entregársela al agente.
 
@@ -98,7 +99,7 @@ En el modo basado en manejadores entonces, las interacciones entre el agente y e
 
 Comparando ambas maneras de programar, el modo basado en manejadores permite tener un script más organizado, facilitando las modificaciones. Gracias a su formato de clases, tiene una gran capacidad modular; sin embargo, esta forma pierde parte del control. El modo directo, pese a ser más complicado de visualizar y gestionar, permite mantener un control sobre la definición de los elementos y como se estructuran. Ambos modos de programar son útiles; por sus facilidades el modo de manejadores se priorizará. En este trabajo, para tener primero una visión global de la construcción de entornos, se estudiará a fondo un caso directo. Una vez comprendida esta forma de trabajo, se continuará en MetaTool con el modo de manejadores. 
 
-Ambas formas de programar hacen uso de dos conceptos fundamentales, las clases y los tensores. Las clases, tanto en el modo basado en manejadores como en el modo directo, son fundamentales; los entornos en ambas formas se definen a través de clases (\emph{DirectRLEnv} y \emph{ManagerBasedRLEnv}). Dentro de estas clases, se encontrará toda la información relevante del entorno, que en su mayoría estará definida como tensores \emph{Torch}. A continuación, se entrará un poco más en detalle sobre esta estructuración de la información.
+Ambas formas de programar hacen uso de dos conceptos fundamentales, las clases y los tensores. Las clases, tanto en el modo basado en manejadores como en el modo directo, son fundamentales; los entornos en ambas formas se definen a través de clases (\clase{DirectRLEnv} y \clase{ManagerBasedRLEnv}). Dentro de estas clases, se encontrará toda la información relevante del entorno, que en su mayoría estará definida como tensores \emph{Torch}. A continuación, se entrará un poco más en detalle sobre esta estructuración de la información.
 
 \section{Estructuras de datos}%Viernes
 Pese a que este trabajo se centre en la construcción de entornos, eso no significa que se deba perder referencia de la base matemática y los algoritmos de entrenamiento. Se debe poder definir correctamente todos los datos necesarios para que los algoritmos puedan trabajar correctamente. Es por esto que se realizó un estudio exhaustivo de la teoría del aprendizaje por refuerzo clásico y por lo que ahora se estudiará con detalle como se almacenan la información del entorno, para así poder comprender y definir las observaciones, recompensas y acciones correctamente.
@@ -106,6 +107,7 @@ Pese a que este trabajo se centre en la construcción de entornos, eso no signif
 Como se ha mencionado en el apartado anterior, existen dos estructuras principales de datos, las clases y los tensores. Referente a esto, cabe hacer una aclaración. Dentro del lenguaje de programación python hay multiples estructuras de datos relevantes: variables, métodos, etiquetas, etc. Sin embargo, estos conceptos son propios de python por lo que no son de interés en este trabajo. Sin embargo, dentro de IsaacLab, toman especial relevancia las clases (en especial las clases de configuración) y los tensores (trabajados con \emph{PyTorch}). A continuación, veremos el motivo de esta relevancia y los aspectos más interesantes.
 
 \subsection{Clases}
+\label{ap:clasesconfigclass}
 Las clases permiten agrupar datos y funcionalidades dentro de un objeto \cite[Tutorials, 9. Classes]{python_docs}. Es por tanto un elemento clave dentro de la estructura de datos de los entornos. No solo los manejadores y los entornos globales se estructuran en clases, sino los propios robots, los primitivos o las escenas, entre otros, también se estructuran en clases. Como veremos profundamente en los ejemplos, se accederá a todos los datos desde estas clases.
 
 Las clases como tal, son un elemento básico de la programación orientada a objetos, por lo que se presupone un conocimiento básico sobre estas. Sin embargo, las clases dentro de IsaacLab se defines de una manera estandarizada, a través de otras clases \cite{isaaclab_doc}.

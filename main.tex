@@ -32,6 +32,31 @@
 \newcommand{\LogoUPM}{imagenes/LogoUPM.png}
 \newcommand{\LogoETSIDI}{imagenes/LogoETSIDI.png}
 
+\newcommand{\codigo}[1]{\texttt{#1}}
+\newcommand{\clase}[1]{\texttt{#1}}     % para clases
+\newcommand{\metodo}[1]{\texttt{#1}}    % para métodos
+\newcommand{\atributo}[1]{\texttt{#1}}  % para atributos
+\newcommand{\path}[1]{\texttt{#1}}
+\newcommand{\api}[1]{\texttt{#1}}
+
+
+\usepackage{listings}
+\usepackage{xcolor}
+
+%\begin{lstlisting}[style=mypython, caption={Ejemplo de código Python},  label={lst:codigo-suma}]
+\lstdefinestyle{mypython}{ 
+    language=Python,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{teal},
+    showstringspaces=false,
+    frame=single,
+    breaklines=true,
+}
+
+
+
 % Formato del documento
     % Márgenes
 \geometry{a4paper, top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm}

@@ -5,17 +5,27 @@ En este capítulo, se va a estudiar un ejemplo de la herramienta IsaacLab. Con e
 \section{Descripción caso práctivo}
 El primer ejemplo escogido para el estudio es el entorno "Isaac-Ant-v0". En este entorno se busca enseñar a andar a un robot araña de cuatro patas, en IsaacLab llamado \emph{Ant} (figura \ref{fig:antrobot}). El objetivo principal será desplazar el robot en un dirección concreta.
 \begin{figure}[ht]
-    \label{antrobot}
+    \label{fig:antrobot}
     \centering
-    \includegraphics[width=\linewidth]{imagenes/UMLarana.pdf}
+    \includegraphics[width=\linewidth]{imagenes/antrobot.jpg}
     \caption{Robot araña o \emph{Ant}, objetivo del aprendizaje para el primer caso práctico.}
 \end{figure}
 
 Analizar este ejercicio es una parte integral de este trabajo. El objetivo a futuro de este trabajo es crear una guía para realizar futuros ensayos de aprendizaje por refuerzo. Este caso, se relaciona directamente con dos proyectos internos de la universidad, \emph{Romerín} \cite{Romerin_Descrip} y \emph{Tarántula} (en fase de desarrollo). Por tanto, este análisis tiene dos objetivos: analizar el problema concreto de locomoción para robots araña y estudiar un caso práctico de la programación directa.
 
-El código de este ejercicio se ha extraído de la herramienta IsaacLab; este se puede encontrar dentro del repositorio de la herramienta \cite{mittal2025isaaclab}, accesible desde la documentación \cite{isaaclab_doc}. En este capítulo, se analizará el código desde el diagrama de clases; sin embargo, se recomienda encarecidamente acompañar la lectura con él código. Durante el análisis, se irá indicando donde se encuentra la parte del código a la cual se hace referencia. Añadido a esto, se ha preparado un proyecto de IsaacLab con todos los códigos utilizados; por lo cual, se indicará la referencia del código de IsaacLab y el proyecto. Se procederá ahora a la definición del diagrama de clases y su estudio.
+El código de este ejercicio se ha extraído de la herramienta IsaacLab; este se puede encontrar dentro del repositorio de la herramienta \cite{mittal2025isaaclab}, accesible desde la documentación \cite{isaaclab_doc}. En este capítulo, se analizará el código desde el diagrama de clases; aportando donde sea necesario los fragmentos de código relevante. Durante el análisis, también se irá indicando donde se encuentra la parte del código a la cual se hace referencia. Se ha preparado un proyecto de IsaacLab con todos los códigos utilizados; por lo cual, se indicará la referencia del código de IsaacLab y el proyecto. Se procederá ahora a la definición del diagrama de clases y su estudio.
 
 \section{Diagrama de Clases}
+
+El diagrama de clases del entorno de la araña se muestra en la figura \ref{UMLarana}. El diagram se utiliza para obtener una visión general de el código del entorno y para simplificar el futuro análisis de este. No se incluyen la totalidad de métodos y atributos, pues gran parte de estos no son relevantes para casos generales como los que se estudiarán. El resto de métodos y atributos son menos relevantes, usándose para funcionalidades muy concretas o para procesos internos de IsaacLab.
+
+El diagrama muestra la construcción del entorno, sobre el cual se entrenará en el apartado \ref{ap:regisarana} y \ref{ap:entrearana}. El entorno gira alrededor de dos piezas centrales, la clase \clase{AntEnv} y la clase \clase{AntEnvCfg}. Al estar trabajando en el caso directo, ambas clases heredan de sus contrapartes del modo directo: \clase{DirectRLEnv} y \clase{DirectRLCfg}, respectivamente. Estas clases están definidas dentro del código de IsaacLab; cada vez que se construya en un entorno en modo directo se heredara de ambas. 
+
+En el caso del directo, la clase de configuración, aquella que hereda de \clase{DirectRLEnvCfg}, se encarga de definir los parámetros físicos y de las interacciones del entorno, las características de la simulación y la escena (con el robot y el resto de elementos incluidos). Esta clase, siempre será un atributo de la clase principal del entorno, aquella que hereda de \clase{DirectRLEnv}. Esta segunda clase toma un gran protagonismo en el modo directo. Sobre ella cae la responsabilidad de definir como se implementa la configuración del entorno, definiendo las interacciones y parte del proceso de aprendizaje y creando la escena a partir de lo definido.
+
+Por otro lado, en este caso particular, se debe analizar de donde provienen ambas clases. Por un lado, la clase de configuración \clase{AntEnvCfg}, hereda directamente de la clase de configuración original. Sin embargo, la clase principal del entorno de la araña hereda en un paso previo de una clase \clase{LocomotionEnv}; esta hereda, esta vez sí, de \clase{DirectRLEnv}. Esta clase intermedia es de gran utilidad, ya que generaliza una tarea concreta encargada de resolver el problema de locomoción. De esta manera, se puede heredar de esta clase para cualquier problema de locomoción, ajustando la escena al caso concreto dentro de la configuración y ajustando parámetros concretos en la principal.
+
+Este esquema se repite en la gran mayoría de los casos de programación directa. Por esto, es importante comprender como se implementa y define cada clase. En el próximo apartado, se estudiará detenidamente cada una de las clases.
 
 \begin{landscape}
 \begin{figure}[ht]
@@ -28,8 +38,180 @@ El código de este ejercicio se ha extraído de la herramienta IsaacLab; este se
 
 \section{Análisis de clases}
 
+En este apartado se estudiará cada una de las clases mostradas en el diagrama, analizando los métodos y atributos definidos en el diagrama. Para cada una de las clases se indicará donde se puede encontrar el código. Después se explicarán la funcionalidad del método o atributo. Dentro de esta explicación, se mostrarán algunas partes del código donde exista un interés en la implementación del método; especialmente en aquellos que definan observaciones u recompensas del entorno. Se comenzará estudiando la clase principal padre, para pasar después a las distintas clases de configuración y se terminará con las clases heredadas de la primera. 
+
+\subsection{DirectRLEnv}
+
+\begin{figure}[ht]
+    \label{fig:clasedirectrlenv}
+    \centering
+    \includegraphics[width=0.8\textwidth]{imagenes/ClassDirectRLEnv.png}
+    \caption{Imagen del diagrama referente a la clase \clase{DirectRLEnv}.}
+\end{figure}
+
+La clase \clase{DirectRLEnc} (figura \ref{fig:clasedirectrlenv}) se encuentra definida en el código fuente de IsaacLab. Se puede acceder al código a través de la biblioteca de API de IsaacLab \cite{isaaclab_api}, concretamente en \emph{isaaclab.envs.DirectRLEnv}. Una vez ahí, se debe seguir el enlace asociado al título, en el botón de "[source]"; tal y como se indica en la figura \ref{fig:guiasource}.
+
+
+\begin{figure}[ht]
+    \label{fig:guiasource}
+    \centering
+    \includegraphics[width=0.8\textwidth]{imagenes/guiasource.png}
+    \caption{Imagen de la documentación oficial de IsaacLab con el link al código fuente \cite{isaaclab_api}.}
+\end{figure}
+
+Esta clase, cómo se viene comentando, es el pilar fundamental del entorno. Esta clase, a través de sus métodos crea el entorno y define sus propiedades e interacciones.
+
+El primer elemento relevante de esta clase se trata del atributo definido como \atributo{cfg}. Este atributo almacena una clase \clase{DirectRLEnvCfg}. Este atributo se utiliza constantemente en el resto de la clase, ya que es la configuración del entorno que se pretende construir. Es por esto, que se debe recoger en el constructor, el primer método definido en el diagrama. El constructor de esta clase es complejo y amplio, pero para el enfoque de este trabajo solo se tendrá en cuenta la recepción del atributo \atributo{cfg}. El resto de código va enfocado al propio funcionamiento de IsaacLab, el cual no se estudiará.
+
+El resto de métodos no son definidos en esta clase, sino que son meramente declarados. Exceptuando el método \metodo{\_set\_up\_scene(self)}, el resto serán métodos abstractos. Estos métodos se definen en las clases heredadas, con el objetivo de definir el funcionamiento de la clase. Más adelante, en el sub-apartado (figura \ref{ap:locomotionenv}), se verán ejemplos de sus implementaciones. En este apartado, se estudiará únicamente el objetivo principal de cada una:
+
+\begin{itemize}
+    \item \metodo{\_set\_up\_scene(self)}: Se encarga de configurar la escena, implementando los elementos definidos en el configurador.
+    \item \metodo{\_pre\_physics\_step(self)}: Define las acciones previas a realizar el cálculo de las físicas del entorno.
+    \item \metodo{\_apply\_actions(self)}: En este método se procesan las acciones y se envían al robot entrenado.
+    \item \metodo{\_get\_observations(self)}: Se encarga de calcular y definir las observaciones realizadas sobre el entorno.
+    \item \metodo{\_get\_rewards(self)}: Este método calcula y define las recompensas obtenidas del entorno. 
+    \item \metodo{\_get\_dones(self)}: Este método define y comprueba las condiciones de reinicio del entorno.
+    \item \metodo{\_set\_debug\_vis\_impl}: Se encarga de crear o configurar la visualización de los objetos en escena.
+\end{itemize}
+
+Esta clase, por tanto, define todas las funciones que deben utilizarse para crear y administrar el entorno. Dentro de esta clase, existen otros métodos como \metodo{step(self)} o \metodo{render(self)}, los cuales utilizan estos métodos para crear el proceso de comunicación con el entorno. Esta parte del código, no es relevante para este trabajo, pues forma parte del funcionamiento propio IsaacLab y no se deberá modificar a la hora de crear los entornos. Cabe resaltar que, a pesar de no ser parte del enfoque del trabajo, para tareas de depuración se ha necesitado comprender este proceso.
+
+Como ya se ha mencionado, el elemento que definirá gran parte de esta implementación sera la clase de configuración. A continuación, se estudiará la clase base para luego analizar las respectivas clases heredadas.
+
+\subsection{DirectRLEnvCfg}
+
+\begin{figure}[ht]
+    \label{fig:clasedirectrlenvcfg}
+    \centering
+    \includegraphics[width=0.5\textwidth]{imagenes/ClassDirectRLEnvCfg.png}
+    \caption{Imagen del diagrama referente a la clase \clase{DirectRLEnvCfg}.}
+\end{figure}
+
+La clase \clase{DirectRLEnvCfg} (figura \ref{fig:clasedirectrlenvcfg}), al igual que la anterior, se encuentra definida el código fuente; pudiéndose acceder de la misma manera desde la API \emph{isaaclab.evns.DirectRLEnvCfg}. Esta clase esta definida como una \emph{config\_class}. Este tipo de clase se introdujo en el apartado \ref{ap:clasesconfigclass}. Esta tipo de clase almacena únicamente atributos, haciéndola más fácil de gestionar dentro del funcionamiento de la herramienta. En este apartado, se van a enumerar y analizar los atributos más relevantes de esta clase y cómo afectan al entorno.
+\begin{itemize}
+    \item \atributo{sim}: Almacena una clase \clase{SimulationCfg}, encargada de configurar los principales parámetros de la simulación.
+    \item \atributo{decimation}: Amacena un valor numérico entero (int) que define el número de acciones realizadas antes de actualizar la política.
+    \item \atributo{episode\_length\_s}: Almacena un valor numérico decimal (float) que define la duración de un episodio.
+    \item \atributo{scene}: Almacena una clase \clase{InteractiveSceneCfg} que define los elementos incluidos dentro de una escena, así como las propiedades de esta.
+    \item \atributo{obs\_space}: Almacena una clase \clase{SpaceType} que indica el número de observaciones realizadas sobre el entorno.
+    \item \atributo{action\_space}: De igual manera que el anterior, almacena una clase \clase{SpaceType} que indica el número de acciones.
+\end{itemize}
+
+Cabe resaltar un par de cosas acerca de estos atributos. Exceptuando el atributo \atributo{sim}, el resto tienen asociada una constante \atributo{MISSING}. Esta constante se asegura de que estos atributos sean definidos dentro de una posible clase heredada; es decir, todos los atributos deberán ser definidos en una clase específica de configuración. En segundo lugar, es interesante notar que existen dos variables para el número de las acciones y las observaciones pero no para las recompensas. Esto es debido a que la recompensa deberá definirse como una señal numérica, tal y como dicta el aprendizaje por refuerzo. El tamaño de las observaciones y las acciones por su parte definirán la dimensión de la red neuronal.
+
+Vista la clase base de la configuración de entorno, se va estudiar como se hereda de ella para comenzar a definir un entorno concreto.
+
+\subsection{AntEnvCfg}
+
+\begin{figure}[ht]
+    \label{fig:clasedirectrlenvcfg}
+    \centering
+    \includegraphics[width=0.5\textwidth]{imagenes/AntEnvCfg.png}
+    \caption{Imagen del diagrama referente a la clase \clase{AntEnvCfg}.}
+\end{figure}
+
+La clase a estudiar, es la clase \clase{AntEnvCfg}. Esta clase esta definida dentro del repositorio IsaacLab, en el directorio \texttt{$source/ isaaclab\_tasks/ isaaclab\_tasks/ direct/ ant/ ant\_env.py$} \cite{mittal2025isaaclab}. Esta clase hereda directamente de la clase \clase{DirectRLEnvCfg}, incluyendo dos nuevos atributos: \atributo{terrain} y \atributo{robot}. Por su parte, \atributo{terrain} almacena una clase \clase{TerrainImporterCfg}, encargada de configurar el terreno del entorno. Por otro lado, el atributo \atributo{robot} se encarga de definir las características del robot a entrenar, almacenando una clase \clase{ArticulationCfg}; esta clase se implementará en el siguiente apartado.
+
+En este caso, al ser una implementación de una clase, se va estudiar el código detenidamente.
+
+Al comienzo del código, se importan las distintas herramientas y bibliotecas que vamos a utilizar. Entre ellas se pueden encontrar las clases de simulación, las clases de configuración, etc. Para poder importar una clase, un método o una constante, primero se debe localizar la api donde esta definida y después indicarla. En el código \ref{lst:impantapi}, se puede ver un ejemplo, donde se importa la clase \clase{TerraimImporterCfg} de la API \api{isaaclab.terrains}. También se pueden importar clases definidas en archivos aparte, como se hace con la constante \emph{ANT\_CFG} (código \ref{lst:impantdir}), que guarda la configuración del robot.
+
+\begin{lstlisting}[style=mypython, caption={Ejemplo para importar una clase de una API},  label={lst:impantapi}]
+from isaaclab.terrain import TerrainImporterCfg
+\end{lstlisting}
+
+\begin{lstlisting}[style=mypython, caption={Ejemplo para importar una clase de un archivo},  label={lst:impantsir}]
+from isaaclab_assets.robots.ant import ANT_CFG
+\end{lstlisting}
+
+Seguidamente, se comienza a definir la clase. En primer lugar, se definen distintos atributos concretos. Entre ellos se encuentran los ya mencionados \atributo{episode\_length\_s}, \atributo{action\_scale}, \atributo{decimation} y \atributo{observation\_space}. También se definen algunos nuevos atributos, como \atributo{action\_scale}, que sirve para escalar la acción en el procesado. Seguidamente se configura la simulación (código \ref{lst:simcfgant}). En el constructor, se definen dos atributos principales: \atributo{dt}, que define el tiempo entre los pasos del proceso, y \atributo{render\_interval}, que define cada cuanto se actualiza la visualización.Después se define el atributo terrain, con una clase \clase{TerrainImporter}. Este atributo define cómo será el suelo, desde su construcción hasta sus propiedades físicas. En este caso, no cabe resaltarlo pues se genera un plano simple, pero en el apartado de mejoras, se estudiará detenidamente esta clase para generar otro tipo de terrenos.
+\begin{lstlisting}[style=mypython, caption={Definición de la configuración de la simulación},  label={lst:simcfgant}]
+sim: SimulationCfg = SimulationCfg(dt=1 / 120, render_interval=decimation)
+\end{lstlisting}
+
+Continuando dentro de la clase, se define el atributo \atributo{scene}, mediante una clase \clase{InteractiveSceneCfg} (código \ref{lst:scenecfgant}). Dentro de esta clase, se definen con el constructor distintos parámetros referentes al número de entornos. Como ya se ha mencionado, en IsaacLab se entrena con múltiples copias de un mismo entorno en paralelo. Esta clase es la encargada de almacenarlos y gestionarlos. Por ello, se deben definir algunos parámetros relevantes como el número de entornos (\atributo{num\_envs}), el espacio entre estos (\atributo{env\_spacing}) y la forma de clonado (\atributo{replicate\_physics} y \atributo{clone\_fabric}). Justo después, se define el atributo \atributo{robot}, encargado de configurar el robot del entorno. Este atributo se asocia a una constante, importada, como antes se ha visto, de un archivo a parte. En el próximo apartado se verá como se configura el robot araña. También se define el atributo \atributo{joint\_gears}, encargado de ajustar la fuerza aplicada en las acciones. Estas acciones también van estrechamente relacionadas con la configuración del robot, configuradas también en la constante importada.
+\begin{lstlisting}[style=mypython, caption={Definición de la configuración de la escena},  label={lst:scenecfgant}]
+scene: InteractiveSceneCfg = InteractiveSceneCfg(
+    num_envs=4096, env_spacing=4.0, replicate_physics=True, clone_in_fabric=True)
+\end{lstlisting}
+
+Por último, para terminar de definir la configuración del entorno, se deben indicar los pesos que se van a utilizar para cada recompensa. En el apartado \ref{ap:locomotionenv} se verá cuales son estas recompensas y como se aplica este peso. No obstante, antes de llegar a estas se va estudiar la configuración del robot.
+
+\subsection{ArticulationCfg}
+
+\begin{figure}[ht]
+    \label{fig:clasearticulationcfg}
+    \centering
+    \includegraphics[width=0.5\textwidth]{imagenes/StructRL.pdf}
+    \caption{Imagen del diagrama referente a la clase \clase{AntEnvCfg}.}
+\end{figure}
+
+La clase \clase{ArticulationCfg} sirve para configurar la implementación del robot del entorno. Esta configuración se puede definir a través de su constructor. En este apartado, se estudiará la implementación de esta clase para el caso concreto de locomoción para el robot araña. Esta implementación se realiza en el archivo \texttt{$source/ isaaclab\_assets/ isaaclab\_assets/ robots/ ant.py$} \cite{mittal2025isaaclab}, cuyo código se muestra en \ref{lst:artcfgant}.
+
+Esta clase hereda de la llamada \clase{AssetBaseCfg}, dirigida a configurar cada prim de la simulación. Esta clase, asocia el prim a una dirección dentro del mundo (definido en el apartado \ref{ap:structisaac}) y define la forma en la que se crea, normalmente a través de un archivo USD. También define si este archivo es visible, a través del atributo \atributo{debug\_bis} y con que objetos puede colisionar, mediante el atributo \atributo{colission\_group}. Por esto, usaremos estos mismos atributos para definir el robot.
+
+\begin{lstlisting}[style=mypython, caption={Implementación de la clase \clase{ArticulationCfg}},  label={lst:artcfgant}]
+from __future__ import annotations
+
+import isaaclab.sim as sim_utils
+from isaaclab.actuators import ImplicitActuatorCfg
+from isaaclab.assets import ArticulationCfg
+from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR
+
+ANT_CFG = ArticulationCfg(
+    prim_path="{ENV_REGEX_NS}/Robot",
+    spawn=sim_utils.UsdFileCfg(
+        usd_path=f"{ISAAC_NUCLEUS_DIR}/Robots/IsaacSim/Ant/ant_instanceable.usd",
+        rigid_props=sim_utils.RigidBodyPropertiesCfg(
+            disable_gravity=False,
+            max_depenetration_velocity=10.0,
+            enable_gyroscopic_forces=True,
+        ),
+        articulation_props=sim_utils.ArticulationRootPropertiesCfg(
+            enabled_self_collisions=False,
+            solver_position_iteration_count=4,
+            solver_velocity_iteration_count=0,
+            sleep_threshold=0.005,
+            stabilization_threshold=0.001,
+        ),
+        copy_from_source=False,
+    ),
+    init_state=ArticulationCfg.InitialStateCfg(
+        pos=(0.0, 0.0, 0.5),
+        joint_pos={
+            ".*_leg": 0.0,
+            "front_left_foot": 0.785398,  # 45 degrees
+            "front_right_foot": -0.785398,
+            "left_back_foot": -0.785398,
+            "right_back_foot": 0.785398,
+        },
+    ),
+    actuators={
+        "body": ImplicitActuatorCfg(
+            joint_names_expr=[".*"],
+            stiffness=0.0,
+            damping=0.0,
+        ),
+    },
+)
+\end{lstlisting}
+
+Esta implementación se almacena en la constante \atributo{ANT\_CFG}, que luego se importa, como ya se ha visto en el apartado anterior, dentro de  la configuración del entorno. En el constructor, primero se definen los dos atributos heredados de la clase \clase{AssetBaseCfg}. 
+
+En primer lugar, el atributo \atributo{prim\_path}, el cual define la ruta donde se guarda el elemento primitivo. Este atributo usa una cadena formateada que permite almacenarlo en cada uno de los entornos, manteniendo el mismo esquema. En 
+
+Segundo lugar, el atributo \atributo{spawn}, que define la creación del primitivo. Este atributo se define a través de una clase \clase{UsdFileCfg}. Esta clase indica el archivo que se utiliza para generar el robot en la escena, mediante el atributo \atributo{usd\_path}. Este archivo se encuentra guardado dentro de IsaacSim, por lo que se usa la constante \atributo{ISAAC\_NUCLEUS\_DIR}, que apunta a los archivos de esta aplicación. También se definen las propiedades relevantes a la articulación con los atributos \atributo{rigid\_props} y \atributo{articulation\_props}. Por último, mediante el atributo \atributo{copy\_from\_source}, se indica si se usará una copia del archivo o el propio archivo. En este caso, al no realizar modificaciones, se indica con un valor \atributo{False} el uso del archivo original.
+
+Los otros dos atributos que se deben indicar en el constructor son \atributo{init\_state} y \atributo{actuators}. Por un lado, \atributo{init\_state} define la posición inicial del robot mediante la clase \clase{InitialStateCfg}. En el constructor de esta clase, se debe indicar la posición del robot referente al mundo, mediante el atributo \atributo{pos}; y la posición de las articulaciones. La posición de las articulaciones se indica mediante un diccionario. En él, a todas las patas se les asocia el mismo valor, utilizando una cadena con el caracter "*". Esto hace que todas las articulaciones terminadas en "\_leg" se les asocie el mismo valor. Por otro lado, el atributo \atributo{actuators} define el movimiento de las articulaciones, definiéndose a través de un diccionario. En este caso, se define un único tipo de movimiento mediante \clase{ImplicitActuatorCfg}, en la cual se asocia el movimiento a todas las articulaciones y se dan los valores de rigidez (\atributo{stiffness}) y amortiguación (\atributo{damping}).
+
+\subsection{LocomotionEnv}
+\label{ap:locomotionenv}
+
 \section{Registro del Entorno}
+\label{ap:regisarana}
 
 \section{Aprendizaje y Evaluación}
+\label{ap:entrearana}
 
 \section{Posibles mejoras}
