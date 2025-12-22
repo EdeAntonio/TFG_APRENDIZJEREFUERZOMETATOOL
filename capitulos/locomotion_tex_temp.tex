@@ -68,4 +68,42 @@ A continuación, se van a analizar cada uno de los parámetros cálculados:
 \end{itemize}
 Cada uno de estos elementos será relevante en la valoración y observación de los entornos, por lo que se deberá ejecutar en cada paso de la simulación.
 
-A continuación, se define el metodo \metodo{\_get\_observations(self)}. Este, era un metodo de abstracto de la clase base y debe utilizarse para recoger las observaciones del entorno. Para ello, se conforma un tensor de un único eje donde vienen todos los valores de las observaciones. La dimensión de este único eje, será el número de entradas que tendrá la red neuronal. Este método, se define de la siguiente manera.
+A continuación, se define el metodo \metodo{\_get\_observations(self)}. Este, era un metodo de abstracto de la clase base y debe utilizarse para recoger las observaciones del entorno. Para ello, se conforma un tensor de un único eje donde vienen todos los valores de las observaciones. La dimensión de este único eje, será el número de entradas que tendrá la red neuronal. Este método, se define de la siguiente manera (código \ref{lst:obsloc}):
+\begin{lstlisting}[style=mypython, caption={Definición del método \metodo{\_get\_observations(self)}},  label={lst:obsloc}]
+    def _get_observations(self) -> dict:
+    obs = torch.cat(
+        (
+            self.torso_position[:, 2].view(-1, 1),
+            self.vel_loc,
+            self.angvel_loc * self.cfg.angular_velocity_scale,
+            normalize_angle(self.yaw).unsqueeze(-1),
+            normalize_angle(self.roll).unsqueeze(-1),
+            normalize_angle(self.angle_to_target).unsqueeze(-1),
+            self.up_proj.unsqueeze(-1),
+            self.heading_proj.unsqueeze(-1),
+            self.dof_pos_scaled,
+            self.dof_vel * self.cfg.dof_vel_scale,
+            self.actions,
+        ),
+        dim=-1,
+    )
+    observations = {"policy": obs}
+    return observations
+\end{lstlisting}
+Esta clase utiliza el metodo \metodo{torch.cat} para concatenar una serie de vectores. Estos vectores conformaran las distintas observaciones que someteran al entorno. Entre ellas encontramos las siguientes.
+\begin{itemize}
+    \item \atributo(torso_position[:, 2]): La altura del torso.
+    \item \atributo(vel_loc): La velocidad de aproximación al objetivo, calculada en \metodo{\_compute\_intermidiate\_rewards(self)}.
+    \item \atributo(angvel_loc): La velocidad angular con la que se aproxima al objetivo, calculada en \metodo{\_compute\_intermidiate\_rewards(self)}.
+    \item \atributo(yaw), \atributo(row): Ángulos de rotación sobre el eje X y el eje Z. Se normalizan ambos.
+    \item \atributo(angle_to_target): Ángulo respecto al objetivo, calculada en \metodo{\_compute\_intermidiate\_rewards(self)}.
+    \item \atributo(up_proj): Proyección del normal al torso, calculada en \metodo{\_compute\_intermidiate\_rewards(self)}.
+    \item \atributo(heading_prol): Proyección del vector de dirección del torso, calculada en \metodo{\_compute\_intermidiate\_rewards(self)}.
+    \item \atributo(dof_pos_scaled): La posición de las articulaciones escalada, calculada en \metodo{\_compute\_intermidiate\_rewards(self)}.
+    \item \atributo(dof_vel): La velocidad de las articulaciones, la cual se escala multiplicando por el parametro correspondiente.
+    \item \atributo(actions): La última acción registrada.
+\end{itemize}
+Cabe resaltar que todas las variables deben darse con dos ejes, uno de dimensión igual al número de entornos y otro con dimensión igual al tamaño de dicha observación. Para ello, en algúnos casos se usa la función \metodo{torch.unsqueeze(dim)} \cite{torch_api}. Está funciona añade un eje en la dimesión indicada. Por ejemplo, la variable \atributo{yaw}, es del tipo [num_envs]; con esta función se convierte en [num_envs, 1]. También se usa el método \metodo(torch.Tensor.view(*shape)) \cite{torch_api}, que cambia la forma, indicando el tamaño. El valor -1, calcula automaticamente la dimensión del eje. En este caso, se obtendría un vector de la forma [num_envs, 1]. Completando el método \metodo{torch.cat}, se indica el eje sobre el que se hace la concatenación; al indicar -1, sería el eje de fondo. La observación luego se almacena en un diccionario con la cadena "policy" y se devuelve.
+
+Una vez obtenidas las observaciones, se continua utilizando los parametros de nuestro entorno para calcular las terminaciones. Esto se hace con el método heredado \metodo{\_get\_dones(self)}. Este método devuelve una pareja de dos tensores, cada uno de un único eje con dimesión igual al número de entornos. 
+
