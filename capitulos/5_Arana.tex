@@ -21,7 +21,7 @@ El diagrama de clases del entorno de la araña se muestra en la figura \ref{UMLa
 
 El diagrama muestra la construcción del entorno, sobre el cual se entrenará en el apartado \ref{ap:regisarana} y \ref{ap:entrearana}. El entorno gira alrededor de dos piezas centrales, la clase \clase{AntEnv} y la clase \clase{AntEnvCfg}. Al estar trabajando en el caso directo, ambas clases heredan de sus contrapartes del modo directo: \clase{DirectRLEnv} y \clase{DirectRLCfg}, respectivamente. Estas clases están definidas dentro del código de IsaacLab; cada vez que se construya en un entorno en modo directo se heredara de ambas. 
 
-En el caso del directo, la clase de configuración, aquella que hereda de \clase{DirectRLEnvCfg}, se encarga de definir los parámetros físicos y de las interacciones del entorno, las características de la simulación y la escena (con el robot y el resto de elementos incluidos). Esta clase, siempre será un atributo de la clase principal del entorno, aquella que hereda de \clase{DirectRLEnv}. Esta segunda clase toma un gran protagonismo en el modo directo. Sobre ella cae la responsabilidad de definir como se implementa la configuración del entorno, definiendo las interacciones y parte del proceso de aprendizaje y creando la escena a partir de lo definido.
+En el caso del directo, la clase de configuración, aquella que hereda de \clase{DirectRLEnv\allowbreak Cfg}, se encarga de definir los parámetros físicos y de las interacciones del entorno, las características de la simulación y la escena (con el robot y el resto de elementos incluidos). Esta clase, siempre será un atributo de la clase principal del entorno, aquella que hereda de \clase{DirectRLEnv}. Esta segunda clase toma un gran protagonismo en el modo directo. Sobre ella cae la responsabilidad de definir como se implementa la configuración del entorno, definiendo las interacciones y parte del proceso de aprendizaje y creando la escena a partir de lo definido.
 
 Por otro lado, en este caso particular, se debe analizar de donde provienen ambas clases. Por un lado, la clase de configuración \clase{AntEnvCfg}, hereda directamente de la clase de configuración original. Sin embargo, la clase principal del entorno de la araña hereda en un paso previo de una clase \clase{LocomotionEnv}; esta hereda, esta vez sí, de \clase{DirectRLEnv}. Esta clase intermedia es de gran utilidad, ya que generaliza una tarea concreta encargada de resolver el problema de locomoción. De esta manera, se puede heredar de esta clase para cualquier problema de locomoción, ajustando la escena al caso concreto dentro de la configuración y ajustando parámetros concretos en la principal.
 
@@ -41,7 +41,7 @@ Este esquema se repite en la gran mayoría de los casos de programación directa
 En este apartado se estudiará cada una de las clases mostradas en el diagrama, analizando los métodos y atributos definidos en el diagrama. Para cada una de las clases se indicará donde se puede encontrar el código. Después se explicarán la funcionalidad del método o atributo. Dentro de esta explicación, se mostrarán algunas partes del código donde exista un interés en la implementación del método; especialmente en aquellos que definan observaciones u recompensas del entorno. Se comenzará estudiando la clase principal padre, para pasar después a las distintas clases de configuración y se terminará con las clases heredadas de la primera. 
 
 \subsection{DirectRLEnv}
-
+\label{ap:DirectRLEnv}
 \begin{figure}[ht]
     \label{fig:clasedirectrlenv}
     \centering
@@ -105,13 +105,14 @@ Vista la clase base de la configuración de entorno, se va estudiar como se here
 \subsection{AntEnvCfg}
 
 \begin{figure}[ht]
-    \label{fig:clasedirectrlenvcfg}
+    \label{fig:antenvcfg}
     \centering
     \includegraphics[width=0.5\textwidth]{imagenes/AntEnvCfg.png}
     \caption{Imagen del diagrama referente a la clase \clase{AntEnvCfg}.}
 \end{figure}
 
-La clase a estudiar, es la clase \clase{AntEnvCfg}. Esta clase esta definida dentro del repositorio IsaacLab, en el directorio \texttt{$source/ isaaclab\_tasks/ isaaclab\_tasks/ direct/ ant/ ant\_env.py$} \cite{mittal2025isaaclab}. Esta clase hereda directamente de la clase \clase{DirectRLEnvCfg}, incluyendo dos nuevos atributos: \atributo{terrain} y \atributo{robot}. Por su parte, \atributo{terrain} almacena una clase \clase{TerrainImporterCfg}, encargada de configurar el terreno del entorno. Por otro lado, el atributo \atributo{robot} se encarga de definir las características del robot a entrenar, almacenando una clase \clase{ArticulationCfg}; esta clase se implementará en el siguiente apartado.
+La clase a estudiar, es la clase \clase{AntEnvCfg}. Esta clase esta definida dentro del repositorio IsaacLab, en el directorio \verb|source/isaaclab_tasks/isaaclab_tasks/direct/ant/| \verb|ant_env.py|
+\cite{mittal2025isaaclab}. Esta clase hereda directamente de la clase \clase{DirectRLEnvCfg}, incluyendo dos nuevos atributos: \atributo{terrain} y \atributo{robot}. Por su parte, \atributo{terrain} almacena una clase \clase{TerrainImporterCfg}, encargada de configurar el terreno del entorno. Por otro lado, el atributo \atributo{robot} se encarga de definir las características del robot a entrenar, almacenando una clase \clase{ArticulationCfg}; esta clase se implementará en el siguiente apartado.
 
 En este caso, al ser una implementación de una clase, se va estudiar el código detenidamente.
 
@@ -143,11 +144,13 @@ Por último, para terminar de definir la configuración del entorno, se deben in
 \begin{figure}[ht]
     \label{fig:clasearticulationcfg}
     \centering
-    \includegraphics[width=0.5\textwidth]{imagenes/StructRL.pdf}
-    \caption{Imagen del diagrama referente a la clase \clase{AntEnvCfg}.}
+    \includegraphics[width=0.5\textwidth]{imagenes/ArticulationCfg.png}
+    \caption{Imagen del diagrama referente a la clase \clase{ArticulationCfg}}
 \end{figure}
 
-La clase \clase{ArticulationCfg} sirve para configurar la implementación del robot del entorno. Esta configuración se puede definir a través de su constructor. En este apartado, se estudiará la implementación de esta clase para el caso concreto de locomoción para el robot araña. Esta implementación se realiza en el archivo \texttt{$source/ isaaclab\_assets/ isaaclab\_assets/ robots/ ant.py$} \cite{mittal2025isaaclab}, cuyo código se muestra en \ref{lst:artcfgant}.
+La clase \clase{ArticulationCfg} sirve para configurar la implementación del robot del entorno. Esta configuración se puede definir a través de su constructor. En este apartado, se estudiará la implementación de esta clase para el caso concreto de locomoción para el robot araña. Esta implementación se realiza en el archivo 
+\verb|source/isaaclab\_assets/| \verb|isaaclab\_assets/robots/ant.py|
+ \cite{mittal2025isaaclab}, cuyo código se muestra en \ref{lst:artcfgant}.
 
 Esta clase hereda de la llamada \clase{AssetBaseCfg}, dirigida a configurar cada prim de la simulación. Esta clase, asocia el prim a una dirección dentro del mundo (definido en el apartado \ref{ap:structisaac}) y define la forma en la que se crea, normalmente a través de un archivo USD. También define si este archivo es visible, a través del atributo \atributo{debug\_bis} y con que objetos puede colisionar, mediante el atributo \atributo{colission\_group}. Por esto, usaremos estos mismos atributos para definir el robot.
 
@@ -205,8 +208,81 @@ Segundo lugar, el atributo \atributo{spawn}, que define la creación del primiti
 
 Los otros dos atributos que se deben indicar en el constructor son \atributo{init\_state} y \atributo{actuators}. Por un lado, \atributo{init\_state} define la posición inicial del robot mediante la clase \clase{InitialStateCfg}. En el constructor de esta clase, se debe indicar la posición del robot referente al mundo, mediante el atributo \atributo{pos}; y la posición de las articulaciones. La posición de las articulaciones se indica mediante un diccionario. En él, a todas las patas se les asocia el mismo valor, utilizando una cadena con el caracter "*". Esto hace que todas las articulaciones terminadas en "\_leg" se les asocie el mismo valor. Por otro lado, el atributo \atributo{actuators} define el movimiento de las articulaciones, definiéndose a través de un diccionario. En este caso, se define un único tipo de movimiento mediante \clase{ImplicitActuatorCfg}, en la cual se asocia el movimiento a todas las articulaciones y se dan los valores de rigidez (\atributo{stiffness}) y amortiguación (\atributo{damping}).
 
+Definida con esta clase el robot, se tienen todos los elementos necesarios para construir el entorno. En el siguiente apartado, se estudiará la clase \clase{LocomotionEnv}, que hereda de \clase{DirectRLEnv} y define los entornos e interacciones de las tareas de locomoción.
+
 \subsection{LocomotionEnv}
 \label{ap:locomotionenv}
+
+\begin{figure}[ht]
+    \label{fig:locomotionenv}
+    \centering
+    \includegraphics[width=0.5\textwidth]{imagenes/LocomotionEnv.png}
+    \caption{Imagen del diagrama referente a la clase \clase{LocomotionEnv}.}
+\end{figure}
+
+En este apartado se va estudiar la definición de la clase \clase{LocomotionEnv}. Al ser el elemento principal que describirá la tarea se van a analizar cada uno de sus métodos, viendo tanto su objetivo como el desarrollo del código. Para ello, se expondrá el método y su objetivo, después se mostrará el código y se explicará el contenido. Todo el código de la clase se encuentra en el repositorio de la herramienta IsaacLab, en el directorio \verb|source/isaaclab_tasks/isaaclab_tasks/direct/locomotion/locomotion_env.py|.
+
+El primer método implementado en el archivo es \metodo{normalize\_angle(x)} (código \ref{lst:normang}). Este método se encarga simplemente de utilizar herramientas de PyTorch para normalizar el ángulo. Con esta función, los ángulos se traspasan a un rango $[-\pi, \pi]$. Esto convierte a los ángulos en números más fáciles de tratar, pues se evita el uso de números mayores con el incremento por vuelta.
+\begin{lstlisting}[style=mypython, caption={Definición del método \metodo{normalize\_angle(x)}},  label={lst:normang}]
+def normalize_angle(x):
+    return torch.atan2(torch.sin(x), torch.cos(x))
+\end{lstlisting}
+Este método se implementa de manera sencilla, utilizando la función de PyTorch \metodo{atan2(y, x)}, la cual devuelve un valor en el rango estipulado. Esta función es alimentada con otras dos funciones de esta biblioteca \metodo{sin(x)} y \metodo{cos(x)}. Estas hacen que se preserve la dirección angular y se elimine el número de vueltas. Como se verá en el resto de métodos, se van a utilizar multiples funciones de PyTorch, ya que en todo momento se trabaja con tensores; estos, como ya se ha comentado, permiten almacenar la información de todos los entornos en un único lugar. Estos métodos se almacenan en el código mediante el objeto módulo \api{torch}.
+
+Definida esta función, que será de utilidad en próximos métodos, se declara la clase \clase{LocomotionEnv}. El primer método definido en esta es su constructor. El constructor busca almacenar todos los datos relevantes que se conocen de primera mano, así como declarar tensores relevantes para el cálculo de las recompensas y observaciones. A continuación, se expone el código de este método (código \ref{lst:initloc})
+\begin{lstlisting}[style=mypython, caption={Definición del constructor de la clase \clase{LocomotionEnv}},  label={lst:initloc}]
+def __init__(self, cfg: DirectRLEnvCfg, render_mode: str | None = None, **kwargs):
+        super().__init__(cfg, render_mode, **kwargs)
+
+        self.action_scale = self.cfg.action_scale
+        self.joint_gears = torch.tensor(self.cfg.joint_gears, dtype=torch.float32, device=self.sim.device)
+        self.motor_effort_ratio = torch.ones_like(self.joint_gears, device=self.sim.device)
+        self._joint_dof_idx, _ = self.robot.find_joints(".*")
+
+        self.potentials = torch.zeros(self.num_envs, dtype=torch.float32, device=self.sim.device)
+        self.prev_potentials = torch.zeros_like(self.potentials)
+        self.targets = torch.tensor([1000, 0, 0], dtype=torch.float32, device=self.sim.device).repeat(
+            (self.num_envs, 1)
+        )
+        self.targets += self.scene.env_origins
+        self.start_rotation = torch.tensor([1, 0, 0, 0], device=self.sim.device, dtype=torch.float32)
+        self.up_vec = torch.tensor([0, 0, 1], dtype=torch.float32, device=self.sim.device).repeat((self.num_envs, 1))
+        self.heading_vec = torch.tensor([1, 0, 0], dtype=torch.float32, device=self.sim.device).repeat(
+            (self.num_envs, 1)
+        )
+        self.inv_start_rot = quat_conjugate(self.start_rotation).repeat((self.num_envs, 1))
+        self.basis_vec0 = self.heading_vec.clone()
+        self.basis_vec1 = self.up_vec.clone()
+\end{lstlisting}
+En primer lugar, se utiliza el constructor de \clase{DirectRLEnv}. Este permite instanciar todos aquellos valores que se necesitan por defecto, como la configuración o el número de entornos. Después se definen distintos atributos relevantes al procesado de las acciones. Se define la escala de las acciones, se transforma el vector de la ponderación de la fuerza, se declara un tensor completo a uno con la dimensión del vector de la ponderación y se recoge el nombre de las distintas articulaciones. Cabe resaltar en estos atributos el uso del método \metodo{torch.tensor} \cite{pytorch_docs}, que permite crear un tensor; y del método \metodo{torch.ones\_like} \cite{pytorch_docs}, que permite crear un tensor inicializado entero a uno con la dimensión del referenciado. Seguidamente, se definen todos los atributos relevantes al cálculo de las observaciones y las recompensas. Algunos como \atributo{potentials} o \atributo{prev\_potentials}, al tratarse más adelante, se inicializan a cero, mediante el método \metodo{torch.zeros} \cite{pytorch_docs}, en el cual se indica directamente la dimensión; o el método \metodo{torch.zeros\_like}, donde la dimensión se da indirectamente a través de un sensor. Otros, como \atributo{start\_rotation}, que indica la rotación inicial de la araña, o \atributo{heading\_vec}, que indica un vector de referencia para el avance, se definen directamente con \atributo{torch.tensor}. En algunos de ellos, se utiliza el método \atributo{torch.Tensor.repeat()} \cite{pytorch_docs}, que permite duplicar el tensor. En el caso de \atributo{inv\_start\_rot}, dónde se calcula el inverso de la rotación inicial, se repite dicho valor por el número de entornos en el eje 0 y por 1 en el eje 1, quedando un tensor de forma [num\_envs, 4].
+
+El siguiente método que se define es \metodo{\_set\_up\_scene}. Este era el encargado de, con los elementos definidos en la configuración, crear la escena. El código de la definición de este método se muestra a continuación (código \ref{lst:suploc}).
+\begin{lstlisting}[style=mypython, caption={Definición del método \metodo{\_set\_up\_scene(self)} de la clase \clase{LocomotionEnv}},  label={lst:suploc}]
+    def _setup_scene(self):
+        self.robot = Articulation(self.cfg.robot)
+        # inclusion del plano del entorno
+        self.cfg.terrain.num_envs = self.scene.cfg.num_envs
+        self.cfg.terrain.env_spacing = self.scene.cfg.env_spacing
+        self.terrain = self.cfg.terrain.class_type(self.cfg.terrain)
+        # clonar y replicar
+        self.scene.clone_environments(copy_from_source=False)
+        # incluir la articulacion a la escena
+        self.scene.articulations["robot"] = self.robot
+        # add lights
+        light_cfg = sim_utils.DomeLightCfg(intensity=2000.0, color=(0.75, 0.75, 0.75))
+        light_cfg.func("/World/Light", light_cfg)
+\end{lstlisting}
+Lo primero que realiza este método es instanciar una clase \clase{Articulation} mediante la configuración del robot, almacena en la configuración del entorno. Después, se completa la configuración del terreno con el número de entornos y el espacio entre ellos definido, y se instancia de la misma manera. Seguidamente, se define la forma de clonado de los entornos, en este caso, al negar \atributo{copy\_from\_source}, los entornos clonados no heredan los estados del original, siendo así independientes de este. El robot, por otro lado, al ser la pieza central, tiene un hueco asignado dentro de la escena, por lo que se debe asociar a esta, a pesar de tenerlo declarado también en otra variable. Por último, se configuran las luces para la visualización de la escena.
+
+Dos métodos, que en este caso van estrechamente relacionados, son los métodos \metodo{\_pre\_physics\_step} y \metodo{\_apply\_action}. Pese a que tienen objetivos distintos (como se vio en el apartado \ref{ap:DirectRLEnv}), en este caso ambos métodos tratan las acciones; esto se puede observar en el siguiente código (código \ref{lst:pfaaloc})
+\begin{lstlisting}[style=mypython, caption={Definición del método \metodo{\_pre\_physics\_step(self)} y \metodo{\_apply\_action} de la clase \clase{LocomotionEnv}},  label={lst:pfaaloc}]
+    def _pre_physics_step(self, actions: torch.Tensor):
+        self.actions = actions.clone()
+
+    def _apply_action(self):
+        forces = self.action_scale * self.joint_gears * self.actions
+        self.robot.set_joint_effort_target(forces, joint_ids=self._joint_dof_idx)
+\end{lstlisting}
 
 \section{Registro del Entorno}
 \label{ap:regisarana}
