@@ -1,0 +1,109 @@
+
+
+
+El siguiente método que se define es \metodo{\_compute\_intermediate\_values(self)}. Este método se declara directamente en esta clase, no es heredado de la clase base. Su objetivo es realizar una serie de calculos para determinar una serie de valores. Estos valores luego serán utilizados en distintas evaluaciones del proceso de aprendizaje. Este método contiene una función \metodo{compute\_intermediate\_rewards(...)}, definida fuera de la clase; esta es la que contiene estos cálculos. Esta definición se muestra en el siguiente código (código \ref{lst:civloc}).
+\begin{lstlisting}[style=mypython, caption={Definición del método \metodo{compute\_intermediate\_rewards(...)}},  label={lst:civloc}]
+    def compute_intermediate_values(
+        targets: torch.Tensor,
+        torso_position: torch.Tensor,
+        torso_rotation: torch.Tensor,
+        velocity: torch.Tensor,
+        ang_velocity: torch.Tensor,
+        dof_pos: torch.Tensor,
+        dof_lower_limits: torch.Tensor,
+        dof_upper_limits: torch.Tensor,
+        inv_start_rot: torch.Tensor,
+        basis_vec0: torch.Tensor,
+        basis_vec1: torch.Tensor,
+        potentials: torch.Tensor,
+        prev_potentials: torch.Tensor,
+        dt: float,
+    ):
+        to_target = targets - torso_position
+        to_target[:, 2] = 0.0
+    
+        torso_quat, up_proj, heading_proj, up_vec, heading_vec = compute_heading_and_up(
+            torso_rotation, inv_start_rot, to_target, basis_vec0, basis_vec1, 2
+        )
+    
+        vel_loc, angvel_loc, roll, pitch, yaw, angle_to_target = compute_rot(
+            torso_quat, velocity, ang_velocity, targets, torso_position
+        )
+    
+        dof_pos_scaled = torch_utils.maths.unscale(dof_pos, dof_lower_limits, dof_upper_limits)
+    
+        to_target = targets - torso_position
+        to_target[:, 2] = 0.0
+        prev_potentials[:] = potentials
+        potentials = -torch.norm(to_target, p=2, dim=-1) / dt
+    
+        return (
+            up_proj,
+            heading_proj,
+            up_vec,
+            heading_vec,
+            vel_loc,
+            angvel_loc,
+            roll,
+            pitch,
+            yaw,
+            angle_to_target,
+            dof_pos_scaled,
+            prev_potentials,
+            potentials,
+        )
+\end{lstlisting}
+A continuación, se van a analizar cada uno de los parámetros cálculados:
+\begin{itemize}
+    \item \atributo{up_proj}: proyección escalar del vector que indica la dirección superior del torso de la araña. Es decir, el vector normal al torso. Se calcula en referencia a la rotación del torso, su rotación inicial y la referencia antes dada de la dirección superior objetivo, [0, 0, 1]. Se usa la función \metodo{compute_heading_and_up} \cite{https://docs.isaacsim.omniverse.nvidia.com/4.5.0/py/index.html}.
+    \item \atributo{heading_proj}: Este atributo, de una misma manera que el anterior, indica el vector dirección de la araña, tomando de referencia el vector de dirección definido [1, 0, 0].
+    \item \atributo{up_vec}: el vector de la dirección superior. La proyección de este sobre el vector de dirección superior, [0, 0, 1], resultaría en el atributo \atributo[up_proj]
+    \item \atributo{up_vec}: de una misma manera que el anterior, este atributo representa el vector de la dirección. La proyección de este sobre el vector de dirección superior, [0, 0, 1], resultaría en el atributo \atributo[heading_proj].
+    \item \atributo{vel_loc}: indica la velocidad con la cual se acerca al objetivo establecido en \atributo{targets}.
+    \item \atributo{roll}, \atributo{pitch}, \atributo{yaw}: indica la rotación del torso de la araña en esa convención. Lo hace a partir del cuaternio almacenado en \atributo{torso\_quat}.
+    \item \atributo{angle_to_target}: indica el angulo entre el vector de dirección y el vector hacia el objetivo \cite{compute_rot}.
+    \item \atributo{dof_pos_scaled}: almacena la posición de las articulaciones desnormalizadas de sus límites \cite{unscales}.
+    \item \atributo{prev_potentials}: almacena el valor anterior de los potenciales.
+    \item \atributo{potentials}: cálcula si el robot se acerca o se aleja del objetivo.
+\end{itemize}
+Cada uno de estos elementos será relevante en la valoración y observación de los entornos, por lo que se deberá ejecutar en cada paso de la simulación.
+
+A continuación, se define el metodo \metodo{\_get\_observations(self)}. Este, era un metodo de abstracto de la clase base y debe utilizarse para recoger las observaciones del entorno. Para ello, se conforma un tensor de un único eje donde vienen todos los valores de las observaciones. La dimensión de este único eje, será el número de entradas que tendrá la red neuronal. Este método, se define de la siguiente manera (código \ref{lst:obsloc}):
+\begin{lstlisting}[style=mypython, caption={Definición del método \metodo{\_get\_observations(self)}},  label={lst:obsloc}]
+    def _get_observations(self) -> dict:
+    obs = torch.cat(
+        (
+            self.torso_position[:, 2].view(-1, 1),
+            self.vel_loc,
+            self.angvel_loc * self.cfg.angular_velocity_scale,
+            normalize_angle(self.yaw).unsqueeze(-1),
+            normalize_angle(self.roll).unsqueeze(-1),
+            normalize_angle(self.angle_to_target).unsqueeze(-1),
+            self.up_proj.unsqueeze(-1),
+            self.heading_proj.unsqueeze(-1),
+            self.dof_pos_scaled,
+            self.dof_vel * self.cfg.dof_vel_scale,
+            self.actions,
+        ),
+        dim=-1,
+    )
+    observations = {"policy": obs}
+    return observations
+\end{lstlisting}
+Esta clase utiliza el metodo \metodo{torch.cat} para concatenar una serie de vectores. Estos vectores conformaran las distintas observaciones que someteran al entorno. Entre ellas encontramos las siguientes.
+\begin{itemize}
+    \item \atributo(torso_position[:, 2]): La altura del torso.
+    \item \atributo(vel_loc): La velocidad de aproximación al objetivo, calculada en \metodo{\_compute\_intermidiate\_rewards(self)}.
+    \item \atributo(angvel_loc): La velocidad angular con la que se aproxima al objetivo, calculada en \metodo{\_compute\_intermidiate\_rewards(self)}.
+    \item \atributo(yaw), \atributo(row): Ángulos de rotación sobre el eje X y el eje Z. Se normalizan ambos.
+    \item \atributo(angle_to_target): Ángulo respecto al objetivo, calculada en \metodo{\_compute\_intermidiate\_rewards(self)}.
+    \item \atributo(up_proj): Proyección del normal al torso, calculada en \metodo{\_compute\_intermidiate\_rewards(self)}.
+    \item \atributo(heading_prol): Proyección del vector de dirección del torso, calculada en \metodo{\_compute\_intermidiate\_rewards(self)}.
+    \item \atributo(dof_pos_scaled): La posición de las articulaciones escalada, calculada en \metodo{\_compute\_intermidiate\_rewards(self)}.
+    \item \atributo(dof_vel): La velocidad de las articulaciones, la cual se escala multiplicando por el parametro correspondiente.
+    \item \atributo(actions): La última acción registrada.
+\end{itemize}
+Cabe resaltar que todas las variables deben darse con dos ejes, uno de dimensión igual al número de entornos y otro con dimensión igual al tamaño de dicha observación. Para ello, en algúnos casos se usa la función \metodo{torch.unsqueeze(dim)} \cite{torch_api}. Está funciona añade un eje en la dimesión indicada. Por ejemplo, la variable \atributo{yaw}, es del tipo [num_envs]; con esta función se convierte en [num_envs, 1]. También se usa el método \metodo(torch.Tensor.view(*shape)) \cite{torch_api}, que cambia la forma, indicando el tamaño. El valor -1, calcula automaticamente la dimensión del eje. En este caso, se obtendría un vector de la forma [num_envs, 1]. Completando el método \metodo{torch.cat}, se indica el eje sobre el que se hace la concatenación; al indicar -1, sería el eje de fondo. La observación luego se almacena en un diccionario con la cadena "policy" y se devuelve.
+
+Una vez obtenidas las observaciones, se continua utilizando los parametros de nuestro entorno para calcular las terminaciones. Esto se hace con el método heredado \metodo{\_get\_dones(self)}. Este método devuelve una pareja de dos tensores, cada uno de un único eje con dimesión igual al número de entornos. 
+
