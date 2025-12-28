@@ -3,7 +3,7 @@
 En este capítulo, se va a estudiar un ejemplo de la herramienta IsaacLab. Con este estudio se pretende analizar las distintas partes de la construcción de entornos a través de la forma directa. Primero, se analizará el caso y el objetivo de este. Después, se realizará un diagrama de clases con las principales clases y sus métodos y atributos más relevantes. Una vez definido el diagrama de clases, se analizará cada una detenidamente, entrando en detalle sobre sus métodos y atributos; se verá la función y definición de cada uno. A continuación, se estudiará el registro a través de \emph{gymnasium}, repasando a su vez la configuración del agente. Registrado el entorno, se procederá al entrenamiento de este y a la evaluación del resultado final. Por último, se propondrán algunas mejoras para futuros estudios de aprendizaje.
 
 \section{Descripción caso práctivo}
-El primer ejemplo escogido para el estudio es el entorno "Isaac-Ant-v0". En este entorno se busca enseñar a andar a un robot araña de cuatro patas, en IsaacLab llamado \emph{Ant} (figura \ref{fig:antrobot}). El objetivo principal será desplazar el robot en un dirección concreta.
+El primer ejemplo escogido para el estudio es el entorno "Isaac-Ant-v0". En este entorno se busca enseñar a andar a un robot araña de cuatro patas, en IsaacLab llamado \emph{Ant} (figura \ref{fig:antrobot}). El objetivo principal será desplazar el robot en un dirección concreta, manteniendo el torso paralelo al suelo. Se considerará que el robot va paralelo al suelo cuando su plano en x e y sea paralelo al plano x e y del origen de coordenadas.
 \begin{figure}[ht]
     \label{fig:antrobot}
     \centering
@@ -122,7 +122,7 @@ Al comienzo del código, se importan las distintas herramientas y bibliotecas qu
 from isaaclab.terrain import TerrainImporterCfg
 \end{lstlisting}
 
-\begin{lstlisting}[style=mypython, caption={Ejemplo para importar una clase de un archivo},  label={lst:impantsir}]
+\begin{lstlisting}[style=mypython, caption={Ejemplo para importar una clase de un archivo},  label={lst:impantdir}]
 from isaaclab_assets.robots.ant import ANT_CFG
 \end{lstlisting}
 
@@ -227,7 +227,7 @@ El primer método implementado en el archivo es \metodo{normalize\_angle(x)} (c�
 def normalize_angle(x):
     return torch.atan2(torch.sin(x), torch.cos(x))
 \end{lstlisting}
-Este método se implementa de manera sencilla, utilizando la función de PyTorch \metodo{atan2(y, x)}, la cual devuelve un valor en el rango estipulado. Esta función es alimentada con otras dos funciones de esta biblioteca \metodo{sin(x)} y \metodo{cos(x)}. Estas hacen que se preserve la dirección angular y se elimine el número de vueltas. Como se verá en el resto de métodos, se van a utilizar multiples funciones de PyTorch, ya que en todo momento se trabaja con tensores; estos, como ya se ha comentado, permiten almacenar la información de todos los entornos en un único lugar. Estos métodos se almacenan en el código mediante el objeto módulo \api{torch}.
+Este método se implementa de manera sencilla, utilizando la función de PyTorch \metodo{torch.\allowbreak atan2(y, x)} \cite{pytorch_docs}, la cual devuelve un valor en el rango estipulado. Esta función es alimentada con otras dos funciones de esta biblioteca \metodo{torch.sin(x)} y \metodo{torch.cos(x)} \cite{pytorch_docs}. Estas hacen que se preserve la dirección angular y se elimine el número de vueltas. Como se verá en el resto de métodos, se van a utilizar multiples funciones de PyTorch, ya que en todo momento se trabaja con tensores; estos, como ya se ha comentado, permiten almacenar la información de todos los entornos en un único lugar. Estos métodos se almacenan en el código mediante el objeto módulo \api{torch}.
 
 Definida esta función, que será de utilidad en próximos métodos, se declara la clase \clase{LocomotionEnv}. El primer método definido en esta es su constructor. El constructor busca almacenar todos los datos relevantes que se conocen de primera mano, así como declarar tensores relevantes para el cálculo de las recompensas y observaciones. A continuación, se expone el código de este método (código \ref{lst:initloc})
 \begin{lstlisting}[style=mypython, caption={Definición del constructor de la clase \clase{LocomotionEnv}},  label={lst:initloc}]
@@ -274,7 +274,7 @@ El siguiente método que se define es \metodo{\_set\_up\_scene}. Este era el enc
 \end{lstlisting}
 Lo primero que realiza este método es instanciar una clase \clase{Articulation} mediante la configuración del robot, almacena en la configuración del entorno. Después, se completa la configuración del terreno con el número de entornos y el espacio entre ellos definido, y se instancia de la misma manera. Seguidamente, se define la forma de clonado de los entornos, en este caso, al negar \atributo{copy\_from\_source}, los entornos clonados no heredan los estados del original, siendo así independientes de este. El robot, por otro lado, al ser la pieza central, tiene un hueco asignado dentro de la escena, por lo que se debe asociar a esta, a pesar de tenerlo declarado también en otra variable. Por último, se configuran las luces para la visualización de la escena.
 
-Dos métodos, que en este caso van estrechamente relacionados, son los métodos \metodo{\_pre\_physics\_step} y \metodo{\_apply\_action}. Pese a que tienen objetivos distintos (como se vio en el apartado \ref{ap:DirectRLEnv}), en este caso ambos métodos tratan las acciones; esto se puede observar en el siguiente código (código \ref{lst:pfaaloc})
+Dos métodos, que en este caso van estrechamente relacionados, son los métodos \metodo{\_pre\_physics\_step()} y \metodo{\_apply\_action()}. Pese a que tienen objetivos distintos (como se vio en el apartado \ref{ap:DirectRLEnv}), en este caso ambos métodos tratan las acciones; esto se puede observar en el siguiente código (código \ref{lst:pfaaloc})
 \begin{lstlisting}[style=mypython, caption={Definición del método \metodo{\_pre\_physics\_step(self)} y \metodo{\_apply\_action} de la clase \clase{LocomotionEnv}},  label={lst:pfaaloc}]
     def _pre_physics_step(self, actions: torch.Tensor):
         self.actions = actions.clone()
@@ -283,11 +283,254 @@ Dos métodos, que en este caso van estrechamente relacionados, son los métodos 
         forces = self.action_scale * self.joint_gears * self.actions
         self.robot.set_joint_effort_target(forces, joint_ids=self._joint_dof_idx)
 \end{lstlisting}
+En el método \metodo{\_pre\_physics\_step} se guarda la acción a realizar, indicada dentro del método. Por otro lado, en el método \metodo{\_apply\_action()}, se calculan las fuerzas, mediante los distintos parámetros de escala y proporción, y luego se aplican a las articulaciones del robot.
+
+El siguiente método definido es \metodo{\_compute\_intermediate\_values(self)}. Este  se declara directamente en esta clase, no es heredado de su clase base. Su objetivo es realizar una serie de cálculos para determinar una serie de valores. Estos valores luego serán utilizados en distintas evaluaciones del proceso de aprendizaje. Este método contiene una función \metodo{compute\_intermediate\_rewards(...)}, definida fuera de la clase; esta es la que contiene estos cálculos. Esta definición se muestra en el siguiente código (código \ref{lst:civloc}).
+\begin{lstlisting}[style=mypython, caption={Definición del método \metodo{compute\_intermediate\_rewards(...)}},  label={lst:civloc}]
+    def compute_intermediate_values(
+        targets: torch.Tensor,
+        torso_position: torch.Tensor,
+        torso_rotation: torch.Tensor,
+        velocity: torch.Tensor,
+        ang_velocity: torch.Tensor,
+        dof_pos: torch.Tensor,
+        dof_lower_limits: torch.Tensor,
+        dof_upper_limits: torch.Tensor,
+        inv_start_rot: torch.Tensor,
+        basis_vec0: torch.Tensor,
+        basis_vec1: torch.Tensor,
+        potentials: torch.Tensor,
+        prev_potentials: torch.Tensor,
+        dt: float,
+    ):
+        to_target = targets - torso_position
+        to_target[:, 2] = 0.0
+    
+        torso_quat, up_proj, heading_proj, up_vec, heading_vec = compute_heading_and_up(
+            torso_rotation, inv_start_rot, to_target, basis_vec0, basis_vec1, 2
+        )
+    
+        vel_loc, angvel_loc, roll, pitch, yaw, angle_to_target = compute_rot(
+            torso_quat, velocity, ang_velocity, targets, torso_position
+        )
+    
+        dof_pos_scaled = torch_utils.maths.unscale(dof_pos, dof_lower_limits, dof_upper_limits)
+    
+        to_target = targets - torso_position
+        to_target[:, 2] = 0.0
+        prev_potentials[:] = potentials
+        potentials = -torch.norm(to_target, p=2, dim=-1) / dt
+    
+        return (
+            up_proj,
+            heading_proj,
+            up_vec,
+            heading_vec,
+            vel_loc,
+            angvel_loc,
+            roll,
+            pitch,
+            yaw,
+            angle_to_target,
+            dof_pos_scaled,
+            prev_potentials,
+            potentials,
+        )
+\end{lstlisting}
+A continuación, se van a analizar cada uno de los parámetros calculados:
+\begin{itemize}
+    \item \atributo{up\_proj}: proyección escalar del vector que indica la dirección superior del torso de la araña. Es decir, el vector normal al torso. Se calcula en referencia a la rotación del torso, su rotación inicial y la referencia antes dada de la dirección superior objetivo, [0, 0, 1].
+    \item \atributo{heading\_proj}: Este atributo, de una misma manera que el anterior, indica el vector dirección de la araña, tomando de referencia el vector de dirección definido [1, 0, 0].
+    \item \atributo{up\_vec}: el vector de la dirección superior. La proyección de este sobre el vector de dirección superior, [0, 0, 1], resultaría en el atributo \atributo{up\_proj}
+    \item \atributo{heading\_vec}: de una misma manera que el anterior, este atributo representa el vector de la dirección. La proyección de este sobre el vector de dirección superior, [0, 0, 1], resulta en el atributo \atributo{heading\_proj}.
+    \item \atributo{vel\_loc}: indica la velocidad con la cual se acerca al objetivo establecido en \atributo{targets}.
+    \item \atributo{roll}, \atributo{pitch}, \atributo{yaw}: indica la rotación del torso de la araña en esa convención. Lo hace a partir del cuaterno almacenado en \atributo{torso\_quat}.
+    \item \atributo{angle\_to\_target}: indica el angulo entre el vector de dirección y el vector hacia el objetivo.
+    \item \atributo{dof\_pos\_scaled}: almacena la posición de las articulaciones desnormalizadas de sus límites.
+    \item \atributo{prev\_potentials}: almacena el valor anterior de los potenciales.
+    \item \atributo{potentials}: calcula si el robot se acerca o se aleja del objetivo.
+\end{itemize}
+Cada uno de estos elementos será relevante en la valoración y observación de los entornos, por lo que se deberá ejecutar en cada paso de la simulación.
+
+A continuación, se define el método \metodo{\_get\_observations(self)}. Este, era un método de abstracto de la clase base y debe utilizarse para recoger las observaciones del entorno. Para ello, se conforma un tensor de un único eje donde vienen todos los valores de las observaciones. La dimensión de este único eje, será el número de entradas que tendrá la red neuronal. Este método, se define de la siguiente manera (código \ref{lst:obsloc}):
+\begin{lstlisting}[style=mypython, caption={Definición del método \metodo{\_get\_observations(self)}},  label={lst:obsloc}]
+    def _get_observations(self) -> dict:
+    obs = torch.cat(
+        (
+            self.torso_position[:, 2].view(-1, 1),
+            self.vel_loc,
+            self.angvel_loc * self.cfg.angular_velocity_scale,
+            normalize_angle(self.yaw).unsqueeze(-1),
+            normalize_angle(self.roll).unsqueeze(-1),
+            normalize_angle(self.angle_to_target).unsqueeze(-1),
+            self.up_proj.unsqueeze(-1),
+            self.heading_proj.unsqueeze(-1),
+            self.dof_pos_scaled,
+            self.dof_vel * self.cfg.dof_vel_scale,
+            self.actions,
+        ),
+        dim=-1,
+    )
+    observations = {"policy": obs}
+    return observations
+\end{lstlisting}
+Esta clase utiliza el método \metodo{torch.cat} para concatenar una serie de vectores. Estos vectores conformaran las distintas observaciones que se realizarán sobre el entorno. Entre ellas encontramos las siguientes:
+\begin{itemize}
+    \item \atributo{torso\_position[:, 2]}: La altura del torso.
+    \item \atributo{vel\_loc}: La velocidad de aproximación al objetivo, calculada en \metodo{\_compute\_intermi\allowbreak diate\_rewards(self)}.
+    \item \atributo{angvel\_loc}: La velocidad angular con la que se aproxima al objetivo, calculada en \metodo{\_compute\_intermidiate\_rewards(self)}.
+    \item \atributo{yaw}, \atributo{row}: Ángulos de rotación sobre el eje X y el eje Z. Se normalizan ambos.
+    \item \atributo{angle\_to\_target}: Ángulo respecto al objetivo, calculada en \metodo{\_compute\_intermi\allowbreak diate\_rewards(self)}.
+    \item \atributo{up\_proj}: Proyección del normal al torso, calculada en \metodo{\_compute\_intermidiate\_ \allowbreak rewards(self)}.
+    \item \atributo{heading\_prol}: Proyección del vector de dirección del torso, calculada en \metodo{\_compute\_\allowbreak intermidiate\_rewards(self)}.
+    \item \atributo{dof\_pos\_scaled}: La posición de las articulaciones escalada, calculada en \metodo{\_compute\_\allowbreak intermidiate\_rewards(self)}.
+    \item \atributo{dof\_vel}: La velocidad de las articulaciones, la cual se escala multiplicando por el parámetro correspondiente.
+    \item \atributo{actions}: La última acción registrada.
+\end{itemize}
+Cabe resaltar que todas las variables deben darse con dos ejes, uno de dimensión igual al número de entornos y otro con dimensión igual al tamaño de dicha observación. Para ello, en algunos casos se usa la función \metodo{torch.unsqueeze(dim)} \cite{torch_api}. Está funciona añade un eje en la dimensión indicada. Por ejemplo, la variable \atributo{yaw}, es del tipo [num\_envs]; con esta función se convierte en [num\_envs, 1]. También se usa el método \metodo(torch.Tensor.view(*shape)) \cite{torch_api}, que cambia la forma, indicando el tamaño. El valor -1 calcula automáticamente la dimensión del eje. En este caso, se obtendría un vector de la forma [num\_envs, 1]. Completando el método \metodo{torch.cat}, se indica el eje sobre el que se hace la concatenación; al indicar -1, sería el eje de fondo. La observación luego se almacena en un diccionario con la cadena "policy" y se devuelve.
+
+Una vez obtenidas las observaciones, se continua utilizando los parámetros de nuestro entorno para calcular las recompensas. Esto se hace con el método heredado \metodo{\_get\_rewards(self)}. Este método, igual que para \metodo{\_compute\_intermidiate\_values\allowbreak (self)}, utiliza una función definida fuera de la clase: \metodo{compute\_rewards(...)}. El retorno de este método será el retorno de la clase principal, por lo que se analizará esta más detenidamente. A continuación, se muestra el código (código \ref{lst:rewloc}):
+\begin{lstlisting}[style=mypython, caption={Definición del método \metodo{compute\_rewards(self)}},  label={lst:rewloc}]
+def compute_rewards(
+    actions: torch.Tensor,
+    reset_terminated: torch.Tensor,
+    up_weight: float,
+    heading_weight: float,
+    heading_proj: torch.Tensor,
+    up_proj: torch.Tensor,
+    dof_vel: torch.Tensor,
+    dof_pos_scaled: torch.Tensor,
+    potentials: torch.Tensor,
+    prev_potentials: torch.Tensor,
+    actions_cost_scale: float,
+    energy_cost_scale: float,
+    dof_vel_scale: float,
+    death_cost: float,
+    alive_reward_scale: float,
+    motor_effort_ratio: torch.Tensor,
+):
+    heading_weight_tensor = torch.ones_like(heading_proj) * heading_weight
+    heading_reward = torch.where(heading_proj > 0.8, heading_weight_tensor, heading_weight * heading_proj / 0.8)
+
+    # aligning up axis of robot and environment
+    up_reward = torch.zeros_like(heading_reward)
+    up_reward = torch.where(up_proj > 0.93, up_reward + up_weight, up_reward)
+
+    # energy penalty for movement
+    actions_cost = torch.sum(actions**2, dim=-1)
+    electricity_cost = torch.sum(
+        torch.abs(actions * dof_vel * dof_vel_scale) * motor_effort_ratio.unsqueeze(0),
+        dim=-1,
+    )
+
+    # dof at limit cost
+    dof_at_limit_cost = torch.sum(dof_pos_scaled > 0.98, dim=-1)
+
+    # reward for duration of staying alive
+    alive_reward = torch.ones_like(potentials) * alive_reward_scale
+    progress_reward = potentials - prev_potentials
+
+    total_reward = (
+        progress_reward
+        + alive_reward
+        + up_reward
+        + heading_reward
+        - actions_cost_scale * actions_cost
+        - energy_cost_scale * electricity_cost
+        - dof_at_limit_cost
+    )
+    # adjust reward for fallen agents
+    total_reward = torch.where(reset_terminated, torch.ones_like(total_reward) * death_cost, total_reward)
+    return total_reward
+\end{lstlisting}
+En este método, se calculan una serie de recompensas que luego se suman al final para obtener un único valor numérico. El valor final, almacenado en \atributo{total\_reward}, puede tener dos valores: un valor fijo derivado del coste de terminación o un valor variable dependiendo de las recompensas obtenidas. La selección de este valor se da mediante el método \metodo{torch.where} \cite{pytorch_docs}. En él, se introduce una tensor de valores booleanos que indican cuales de los entornos han finalizado. En aquellos que el entrono haya finalizado, se guardara el coste de terminación como recompensa, y en el resto, la recompensa variable. Esta recompensa variable esta conformada por las siguientes recompensas:
+\begin{itemize}
+    \item \atributo{progress\_reward}: recompensa por tender a acercarse o tender a alejarse. Se calcula a partir de los potenciales, siendo esta recompensa la variación de este.
+    \item \atributo{alive\_reward}: recompensa por continuar el ejercicio.
+    \item \atributo{up\_reward}: recompensa por mantener el torso paralelo al suelo. 
+    \item \atributo{heading\_reward}: recompensa por mantener la dirección del torso hacia el objetivo.
+    \item \atributo{action\_cost}: penalización por el uso de acciones.
+    \item \atributo{electricity\_cost}: penalización por el gasto energético.
+    \item \atributo{dof\_at\_limit\_cost}: penalización por forzar las articulaciones a si límite.
+\end{itemize}
+Todas las recompensas son tensores con forma [num\_envs, 1]. Estas recompensas se pueden calcular de maneras distintas. Por ejemplo, \atributo{up\_reward} se calcula de manera absoluta. Si sobrepasa la proyección un valor fijo, obtiene la totalidad de la recompensa, de lo contrario, obtiene un valor nulo. \atributo{heading\_reward}, por otro lado, se calcula de manera que se toma un valor estándar, y se obtiene una recompensa progresiva hasta llegar a este, donde se obtiene la recompensa total. Estas distintas formas de calcular las recompensas dependerán de lo que se quiera conseguir. En este caso, se es más flexible con la dirección, pero se busca mantener el torso paralelo al suelo dentro del rango indicado.
+
+Dentro de estas recompensas toma relevancia el atributo  \atributo{reset\_\allowbreak terminated}, el cual indica los entornos que han finalizado. Este atributo se calcula con el método \metodo{\_get\_\allowbreak dones(self)}, que resulta ser el siguiente método definido. Este método también es heredado de la clase base. Se define mediante el siguiente código (código \ref{lst:doneloc}):
+\begin{lstlisting}[style=mypython, caption={Definición del método \metodo{\_get\_dones(self)}},  label={lst:doneloc}]
+    def _get_dones(self) -> tuple[torch.Tensor, torch.Tensor]:
+        self._compute_intermediate_values()
+        time_out = self.episode_length_buf >= self.max_episode_length - 1
+        died = self.torso_position[:, 2] < self.cfg.termination_height
+        return died, time_out
+\end{lstlisting}
+En esta clase, antes de calcular las terminaciones, se llama al método \metodo{\_compute\_\allowbreak intermi\allowbreak diate\_rewards(self)}. Esto se debe a que el método \metodo{\_get\_dones(self)}, se declara al comienzo de cada paso de simulación, por lo que de este modo, se calculan en cada momento los valores necesarios. Después de esto, se comprueban lo dos casos de finalización. El primero de ellos se da cuando se supera el tiempo máximo de episodio; el segundo cuando la posición del torso baja de un límite. En ambos casos, se almacena un tensor de forma [num\_envs, 1], donde el eje de fondo guarda un valor booleano. Los dos tensores tienen funciones distintas. Ambos indicarán una terminación del episodio del entorno, pero solo los indicados en \atributo{died} tendrán penalización \cite[isaaclab.envs, DirectRLEnv, step(self, action)]{isaaclab_api}.
+
+Estos tensores indican por lo tanto que entornos deben reiniciarse, pues han llegado al final de su episodio. Este reinicio se define dentro del método \metodo{\_reset\_idx(self)}, también heredado de la clase base. El código del método es el siguiente:
+\begin{lstlisting}[style=mypython, caption={Definición del método \metodo{\_reset\_idx(self)}},  label={lst:doneloc}]
+    def _reset_idx(self, env_ids: torch.Tensor | None):
+        if env_ids is None or len(env_ids) == self.num_envs:
+            env_ids = self.robot._ALL_INDICES
+        self.robot.reset(env_ids)
+        super()._reset_idx(env_ids)
+
+        joint_pos = self.robot.data.default_joint_pos[env_ids]
+        joint_vel = self.robot.data.default_joint_vel[env_ids]
+        default_root_state = self.robot.data.default_root_state[env_ids]
+        default_root_state[:, :3] += self.scene.env_origins[env_ids]
+
+        self.robot.write_root_pose_to_sim(default_root_state[:, :7], env_ids)
+        self.robot.write_root_velocity_to_sim(default_root_state[:, 7:], env_ids)
+        self.robot.write_joint_state_to_sim(joint_pos, joint_vel, None, env_ids)
+
+        to_target = self.targets[env_ids] - default_root_state[:, :3]
+        to_target[:, 2] = 0.0
+        self.potentials[env_ids] = -torch.norm(to_target, p=2, dim=-1) / self.cfg.sim.dt
+
+        self._compute_intermediate_values()
+\end{lstlisting}
+Este método recibe un tensor con los entornos a reiniciar indicados en \atributo{env\_ids}. En este entorno, al tener como único elemento el robot, primero se identifica cada uno de los robots a reiniciar. Después, se hace el reinicio generalizado, mediante el método de la clase padre. Una vez reiniciado los entornos, se lleva el robot al estado y posición original, usando las variables almacenadas dentro de la clase. También se vuelve a calcular el objetivo, ahora desde la posición original; así como los potenciales. Por último, al haber variado las posiciones y estados del robot, se deben volver a calcular los valores intermedios.
+
+En esta clase, se definen todos los aspectos relevantes del entorno. De esta manera, se define los pasos a seguir dentro de las simulación, indicando cada una de las interacciones entre el entorno, la simulación y el agente. Más adelante, en el capítulo siguiente, se podrá apreciar la diferencia con la arquitectura por manejadores. En esta clase, se ha podido estudiar profundamente como se estructuran y calculan las observaciones y las recompensas, así como la realización de reinicios y la creación de los elementos de la escena; en el modo por manejadores, el enfoque estará situado en las clases y no tanto en la definición de los métodos.
+
+Antes de pasar a estudiar como se registra este entorno queda por analizar la clase final, \clase{AntEnv}, que heredará sobre esta clase y modificará los distintos atributos de esta para adaptarla a su caso específico. Esta clase no se podría instanciar todavía, pues faltaría por definir atributos como los pesos de las recompensas o el robot del entorno. Todos estos atributos ya han sido definidos dentro de la configuración de la clase. La clase \clase{AntEnv} queda definida en el mismo archivo que la clase \clase{AntEnvCfg}. Se muestra su definición en el código \ref{lst:antenv}. Esta solo indica el tipo de configuración que recibe, \clase{AntEnvCfg}, y utiliza el constructor de la clase padre para instanciar el entorno. Al tener todos los parámetros definidos dentro de la configuración y heredar de la clase \clase{LocomotionEnv}, obteniendo la definición de las interacciones y construcciones; no hace falta definir ningún elemento más, pudiendo pasar directamente a su registro.
+\begin{lstlisting}[style=mypython, caption={Definición de la clase \clase{AntEnv}},  label={lst:antenv}]
+class AntEnv(LocomotionEnv):
+    cfg: AntEnvCfg
+
+    def __init__(self, cfg: AntEnvCfg, render_mode: str | None = None, **kwargs):
+        super().__init__(cfg, render_mode, **kwargs)
+\end{lstlisting}
 
 \section{Registro del Entorno}
 \label{ap:regisarana}
+El registro del entorno sirve para señalizar una tarea para su entrenamiento. Este proceso se hace en dos pasos: configurar el algoritmo de entrenamiento y señalizarlo dentro de \emph{gymnasium}.
+
+La primera parte de este proceso se realiza en el archivo \verb|source/isaaclab_tasks| \verb|/isaaclab_tasks/direct/ant/agents/rsl_rl_ppo_cfg.py|. En este archivo se definen los principales parámetros del entrenamiento. Primero, se definen parámetros para la propia ejecución de la simulación junto con el entrenamiento. Entre ellos, el número máximo de iteraciones, el guardado de la política o el nombre del ejercicio. Después se define el formato de la política, indicando el ruido y los parámetros propios del actor y el crítico que formaran esta. Por último, se define el formato del algoritmo, indicando parámetros propios del PPO a implementar. Como el enfoque de este trabajo se centra en los entornos, no se entrará en gran detalle sobre esta configuración.
+
+La segunda parte de este proceso registra el entorno y la configuración del algoritmo dentro de \emph{gymnasium} \cite{towers2024gymnasium}. Para ello se define el siguiente código (código \ref{lst:antgym}):
+\begin{lstlisting}[style=mypython, caption={Registro del entorno \emph{Ant}},  label={lst:antgym}]
+gym.register(
+    id="Isaac-Ant-Direct-v0",
+    entry_point=f"{__name__}.ant_env:AntEnv",
+    disable_env_checker=True,
+    kwargs={
+        "env_cfg_entry_point": f"{__name__}.ant_env:AntEnvCfg",
+        "rl_games_cfg_entry_point": f"{agents.__name__}:rl_games_ppo_cfg.yaml",
+        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:AntPPORunnerCfg",
+        "skrl_cfg_entry_point": f"{agents.__name__}:skrl_ppo_cfg.yaml",
+    },
+)
+\end{lstlisting}
+Se utiliza el método \metodo{gymnasium.register}, el cual registra el entorno junto a la configuración del agente. En el entrenamiento, se extraen ambas partes y se implementan para realizar el entrenamiento. Este proceso se realiza a través de los scrips propios de la librería de aprendizaje y es el mismo para cualquier ejercicio. Por tanto, el ejercicio de entrenamiento dependerá de dos factores. Por un lado, el entorno; este se define mediante el atributo \atributo{entry\_point}, que señaliza la clase del entorno principal, y, dentro del atributo \atributo{kwargs}, la cadena asociada a \atributo{env\_cfg\_entry\_point}, que señaliza la clase configuración del entorno. Dentro de \atributo{kwargs} se define también la otra parte del ejercicio, la configuración del agente. En el párrafo anterior, se ha centrado en la biblioteca \emph{rsl\_rl}, la que se usará en este proyecto; sin embargo, en este ejercicio se definen también el resto de bibliotecas. Como se puede observar, se puede llamar a un archivo o, en este caso, a una clase \clase{AntPPORunnerCfg}.
+
+Con la clase registrada, se pueden realizar tanto los ejercicios de entrenamiento como de evaluación. En el siguiente apartado, veremos como ejecutar ambos procesos a través de la terminal.
 
 \section{Aprendizaje y Evaluación}
 \label{ap:entrearana}
 
 \section{Posibles mejoras}
+
+Con vistas a los futuros proyectos dentro de la ETSIDI se van a proponer e integrar dos principales mejoras. Estas se introducirán en este trabajo, pero su expansión e implementación final se darán en futuros trabajos. La primera de ellas será cambiar el terreno donde se entrena la locomoción. En el ejercicio realizado, el terreno es completamente plano, algo poco usual en el mundo real. La segunda mejora a integrar es el uso de cámaras. Estas podrán a ayudar a evitar obstáculos o mejorar la locomoción en terrenos irregulares.
+
+\subsection{Terreno irregular}
+
