@@ -104,3 +104,19 @@ class ActionsCfg:
     gripper_action: ActionTerm | None = None
 \end{lstlisting}
 
+\section{Entrenamiento y evaluación}
+
+De una misma manera que en el capítulo anterior, se va realizar el aprendizaje y evaluación de este ejercicio. En primer lugar, se ejecuta un entrenamiento de prueba con pocos entornos para comprobar que estos se generan correctamente. Después de comprobar que esto ocurre (fígura \ref{fig:reachenttst}), se puede proceder al entrenamiento conn un mayor número de entornos, sin necesidad de ejecutar el simulador.
+
+\begin{figure}[ht]
+    \label{fig:reachenttst}
+    \centering
+    \includegraphics[width=\linewidth]{imagenes/reachenttst.png}
+    \caption{Prueba para el entrenamiento del robot araña}
+\end{figure}
+
+Para este caso se utilizarán 512 entornos. Es interesante notar que al utilizar la forma de manejadores, al descomponer las recompensas en términos individuales, el entrenamiento entrega la información de las recompensas desglosada; a diferencia de la forma directa, donde solo se obtenía el valor de la recompensa global media. Esto nos permite tener más información y poder detectar fácilmente posibles fallos en el entrenamiento. Una vez terminado el entrenamiento (figura \ref{fig:reachenthls}), se observa que la recompensa es negativa. Esto, sin embargo, no es relevante, pues lo importante es que la recompensa se maximize, no que esta sea alta. En este caso, al penalizar en la mayoría de recompensas, lo óptimo es que la recompensa sea próxima a 0, lo cual parece cumplirse. El siguiente paso, será evaluar con \verb|play.py|, de modo que podamos estudiar si cumple los objetivos y si esta recompensa puede minimizarse de alguna forma.
+
+Al evaluar la política de esta manera se observan un problema principal. Por un lado, existen posiciones que requieren que el robot contacte consigo mismo o con el suelo. Esto es un problema, pues puede inhabilitar el movimiento o dañar el robot. Como se espera poder implementar este robot en el robot real, en el próximo apartado se corregirá y mejorará el ejercicio para hacerlo apto para su implementación final.
+
+\section{Mejoras y correcciones}

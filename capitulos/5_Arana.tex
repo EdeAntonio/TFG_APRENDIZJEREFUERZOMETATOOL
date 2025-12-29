@@ -527,10 +527,50 @@ Con la clase registrada, se pueden realizar tanto los ejercicios de entrenamient
 
 \section{Aprendizaje y Evaluación}
 \label{ap:entrearana}
+Una vez estudiado tanto el registro del entorno como su construcción, se va a proceder a realizar el ejercicio de entrenamiento. Para ello, se utilizarán los archivos contenidos en \verb|IsaacLab/scripts/reinforcement_learning/rsl_rl|. Dentro de esta carpeta se encuentran los código para realizar el aprendizaje, en \verb|train.py|, y la evaluación, \verb|play.py|. Ambos códigos son propios de la biblioteca \emph{rsl\_rl} y la herramienta IsaacLab, por lo que no se van a analizar individualmente. En este apartado se va a estudiar como ejecutar ambos códigos a través de la terminal, indicando con las etiquetas todos los datos necesarios.
+
+El primer paso será realizar un entrenamiento de prueba, para ver que el entorno se genere adecuadamente y el entrenamiento se pueda realizar de la forma indicada. Para ello, utilizaremos la siguiente sentencia por terminal (código \ref{lst:entantvis}):
+\begin{lstlisting}[language=bash, label={lst:entantvis}, caption={Entrenamiento de prueba para la locomoción de \emph{Ant}}]
+    python scripts/reinforcement_learning/rsl_rl/train.py --task Isaac-Ant-Direct-v0 --num_envs 4
+\end{lstlisting}
+Con esta sentencia ejecutamos el entrenamiento, indicando la tarea que se quiere entrenar y el número de entornos a utilizar. En un primer momento se van a utilizar un número pequeño de entornos para valorar la construcción del entorno dentro del simulador. Al ejecutralo, se abre la aplicación IsaacSim y se generan cuantro de los robots a entrenar (figura \ref{fig:entvis}). Se observa como los cuatro robots mueven sus articulaciones de forma herrática y al caer su torso sobre el suelo se reinicia el entorno.
+
+\begin{figure}[ht]
+    \label{fig:entvis}
+    \centering
+    \includegraphics[width=\linewidth]{imagenes/antentvis.png}
+    \caption{Prueba para el entrenamiento del robot araña}
+\end{figure}
+
+Una vez se ha realizado una prueba satisfactoria, se puede proceder a realizar el entrenamiento completo. Para ello, se deberán generar una mayor cantidad de entornos, con el objetivo de acelerar el proceso. Para ello, se utilizará la siguiente sentencia (código \ref{entanthls}):
+\begin{lstlisting}[language=bash, label={lst:entantvis}, caption={Entrenamiento de prueba para la locomoción de \emph{Ant}}]
+    python scripts/reinforcement_learning/rsl_rl/train.py --task Isaac-Ant-Direct-v0 --num_envs 512 --headless
+\end{lstlisting}
+Con esta sentencia, ejecutamos el mismo código de entrenamiento, pero aumentando el número de entornos a 512 y utilizando la nueva etiqueta \verb|--headless|. Esta última etiqueta permite ejecutar el entrenamiento sin visualizarlo en el simulador, lo que permite acortar el tiempo de entrenamiento al usar menos recursos. Para poder evaluar el proceso de entrenamiento se obtiene una serie de información en la terminal; esta información se muestra en la figura \ref{fig:entanthls1}. Dentro del cajetín se obtiene información acerca del número de iteraciones o la longitud del episodio. El valor más relevante para evaluar el proceso de entrenamiento es la recompensa media. Está no solo ayuda al robot al apredizaje si no da información sobre como se desemvuelve el ajente dentro en la tarea. En su última iteración (figura \ref{fig:antenthls999}), la recompensa media asciende a 12055.38, por lo que se puede intuir que la araña realiza correctamente el ejercicio de locomoción. 
+
+\begin{figure}[ht]
+    \label{fig:antenthls1}
+    \centering
+    \includegraphics[width=\linewidth]{imagenes/antenthls1.png}
+    \caption{Primeras iteraciones del ejercicio de aprendizaje}
+\end{figure}
+
+\begin{figure}[ht]
+    \label{fig:antenthls1}
+    \centering
+    \includegraphics[width=\linewidth]{imagenes/antenthls999.png}
+    \caption{Primeras iteraciones del ejercicio de aprendizaje}
+\end{figure}
+
+El resultado de este aprendizaje es una serie de modelos, almacenados en la carpeta \verb|IsaacLab/logs/rsl_rl|. Dentro de esta carpeta se almacena un modelo cada 50 iteraciones (este parametro se puede variar dentro de la configuración del agente). Estos modelos contienen la red neuronal con la política implementada en cada iteración. Sin embargo, estos modelos no se pueden utilizar, para ello, primero se debe seleccionar uno de los modelos y evaluarlo con \verb|play.py|. Para ello, se utiliza la siguiente sentencia (código \ref{lst:antenteva}):
+\begin{lstlisting}[language=bash, label={lst:entantvis}, caption={Entrenamiento de prueba para la locomoción de \emph{Ant}}]
+    python scripts/reinforcement_learning/rsl_rl/play.py --task Isaac-Ant-Direct-v0 --num_envs 4 --checkpoint logs/rsl_rl/ant_direct/2025-12-29_10-04-20/model_900.pt
+\end{lstlisting}
+Al ejecutar esta sentencia se abre el simulador, pudiendo estudiar el movimiento de la araña. A través de una inspección visual se puede confirmar que el movimiento de la araña es correcto, por lo que el valor alto de recompensa se adecua a las expectativas. Añadido a la evaluación, al ejecutar este fichero se obtiene un archivo \verb|policy.pt|, almacenado en el directorio \verb|logs/rsl_rl/ant_direct/load_run/exported|, el cual si puede ser exportado y utilizado. Por tanto, esta política ya podría ser llevada al robot real, sin embargo, este ejercicio no está diseñado para dicha implementación. Para poder utilizar este entrenamiento se deben tener más factores en cuenta, lo que se estudiará en el siguiente apartado.
 
 \section{Posibles mejoras}
 
-Con vistas a los futuros proyectos dentro de la ETSIDI se van a proponer e integrar dos principales mejoras. Estas se introducirán en este trabajo, pero su expansión e implementación final se darán en futuros trabajos. La primera de ellas será cambiar el terreno donde se entrena la locomoción. En el ejercicio realizado, el terreno es completamente plano, algo poco usual en el mundo real. La segunda mejora a integrar es el uso de cámaras. Estas podrán a ayudar a evitar obstáculos o mejorar la locomoción en terrenos irregulares.
+Con vistas a los futuros proyectos dentro de la ETSIDI se van a proponer e integrar dos principales mejoras. Estas se introducirán en este trabajo, pero su expansión e implementación final se darán en futuros proyectos. La primera de ellas será cambiar el terreno donde se entrena la locomoción. En el ejercicio realizado, el terreno es completamente plano, algo poco usual en el mundo real. La segunda mejora a integrar es el uso de cámaras. Estas podrán ayudar a evitar obstáculos o mejorar la locomoción en terrenos irregulares.
 
 \subsection{Terreno irregular}
-
+Para introducir el terreno irregular se va utilizar una nueva clase de configuración \clase{TerrainGeneratorCfg}. Esa clase permite definir un nuevo tipo de terreno, que luego es seleccionado dentro de \clase{TerrainImporterCfg}.
