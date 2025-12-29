@@ -531,7 +531,8 @@ Una vez estudiado tanto el registro del entorno como su construcción, se va a p
 
 El primer paso será realizar un entrenamiento de prueba, para ver que el entorno se genere adecuadamente y el entrenamiento se pueda realizar de la forma indicada. Para ello, utilizaremos la siguiente sentencia por terminal (código \ref{lst:entantvis}):
 \begin{lstlisting}[language=bash, label={lst:entantvis}, caption={Entrenamiento de prueba para la locomoción de \emph{Ant}}]
-    python scripts/reinforcement_learning/rsl_rl/train.py --task Isaac-Ant-Direct-v0 --num_envs 4
+    python scripts/reinforcement_learning/rsl_rl/train.py --task
+    Isaac-Ant-Direct-v0 --num_envs 4
 \end{lstlisting}
 Con esta sentencia ejecutamos el entrenamiento, indicando la tarea que se quiere entrenar y el número de entornos a utilizar. En un primer momento se van a utilizar un número pequeño de entornos para valorar la construcción del entorno dentro del simulador. Al ejecutralo, se abre la aplicación IsaacSim y se generan cuantro de los robots a entrenar (figura \ref{fig:entvis}). Se observa como los cuatro robots mueven sus articulaciones de forma herrática y al caer su torso sobre el suelo se reinicia el entorno.
 
@@ -544,7 +545,8 @@ Con esta sentencia ejecutamos el entrenamiento, indicando la tarea que se quiere
 
 Una vez se ha realizado una prueba satisfactoria, se puede proceder a realizar el entrenamiento completo. Para ello, se deberán generar una mayor cantidad de entornos, con el objetivo de acelerar el proceso. Para ello, se utilizará la siguiente sentencia (código \ref{entanthls}):
 \begin{lstlisting}[language=bash, label={lst:entantvis}, caption={Entrenamiento de prueba para la locomoción de \emph{Ant}}]
-    python scripts/reinforcement_learning/rsl_rl/train.py --task Isaac-Ant-Direct-v0 --num_envs 512 --headless
+    python scripts/reinforcement_learning/rsl_rl/train.py --task
+    Isaac-Ant-Direct-v0 --num_envs 512 --headless
 \end{lstlisting}
 Con esta sentencia, ejecutamos el mismo código de entrenamiento, pero aumentando el número de entornos a 512 y utilizando la nueva etiqueta \verb|--headless|. Esta última etiqueta permite ejecutar el entrenamiento sin visualizarlo en el simulador, lo que permite acortar el tiempo de entrenamiento al usar menos recursos. Para poder evaluar el proceso de entrenamiento se obtiene una serie de información en la terminal; esta información se muestra en la figura \ref{fig:entanthls1}. Dentro del cajetín se obtiene información acerca del número de iteraciones o la longitud del episodio. El valor más relevante para evaluar el proceso de entrenamiento es la recompensa media. Está no solo ayuda al robot al apredizaje si no da información sobre como se desemvuelve el ajente dentro en la tarea. En su última iteración (figura \ref{fig:antenthls999}), la recompensa media asciende a 12055.38, por lo que se puede intuir que la araña realiza correctamente el ejercicio de locomoción. 
 
@@ -556,16 +558,20 @@ Con esta sentencia, ejecutamos el mismo código de entrenamiento, pero aumentand
 \end{figure}
 
 \begin{figure}[ht]
-    \label{fig:antenthls1}
+    \label{fig:antenthls999}
     \centering
     \includegraphics[width=\linewidth]{imagenes/antenthls999.png}
-    \caption{Primeras iteraciones del ejercicio de aprendizaje}
+    \caption{Última iteración del ejercicio de aprendizaje}
 \end{figure}
 
-El resultado de este aprendizaje es una serie de modelos, almacenados en la carpeta \verb|IsaacLab/logs/rsl_rl|. Dentro de esta carpeta se almacena un modelo cada 50 iteraciones (este parametro se puede variar dentro de la configuración del agente). Estos modelos contienen la red neuronal con la política implementada en cada iteración. Sin embargo, estos modelos no se pueden utilizar, para ello, primero se debe seleccionar uno de los modelos y evaluarlo con \verb|play.py|. Para ello, se utiliza la siguiente sentencia (código \ref{lst:antenteva}):
-\begin{lstlisting}[language=bash, label={lst:entantvis}, caption={Entrenamiento de prueba para la locomoción de \emph{Ant}}]
-    python scripts/reinforcement_learning/rsl_rl/play.py --task Isaac-Ant-Direct-v0 --num_envs 4 --checkpoint logs/rsl_rl/ant_direct/2025-12-29_10-04-20/model_900.pt
+El resultado de este aprendizaje es una serie de modelos, almacenados en la carpeta \verb|IsaacLab/logs/rsl_rl|. Dentro de esta carpeta se almacena un modelo cada 50 iteraciones (este parámetro se puede variar dentro de la configuración del agente). Estos modelos contienen la red neuronal con la política implementada en cada iteración. Sin embargo, estos modelos no se pueden utilizar, para ello, primero se debe seleccionar uno de los modelos y evaluarlo con \verb|play.py|. Para ello, se utiliza la siguiente sentencia (código \ref{lst:antenteva}):
+\FloatBarrier
+\begin{lstlisting}[language=bash, label={lst:antenteva}, caption={Entrenamiento de prueba para la locomoción de \emph{Ant}}]
+    python scripts/reinforcement_learning/rsl_rl/play.py --task
+    Isaac-Ant-Direct-v0 --num_envs 4 --checkpoint logs/rsl_rl/
+    ant_direct/2025-12-29_10-04-20/model_900.pt
 \end{lstlisting}
+\FloatBarrier
 Al ejecutar esta sentencia se abre el simulador, pudiendo estudiar el movimiento de la araña. A través de una inspección visual se puede confirmar que el movimiento de la araña es correcto, por lo que el valor alto de recompensa se adecua a las expectativas. Añadido a la evaluación, al ejecutar este fichero se obtiene un archivo \verb|policy.pt|, almacenado en el directorio \verb|logs/rsl_rl/ant_direct/load_run/exported|, el cual si puede ser exportado y utilizado. Por tanto, esta política ya podría ser llevada al robot real, sin embargo, este ejercicio no está diseñado para dicha implementación. Para poder utilizar este entrenamiento se deben tener más factores en cuenta, lo que se estudiará en el siguiente apartado.
 
 \section{Posibles mejoras}
@@ -573,4 +579,53 @@ Al ejecutar esta sentencia se abre el simulador, pudiendo estudiar el movimiento
 Con vistas a los futuros proyectos dentro de la ETSIDI se van a proponer e integrar dos principales mejoras. Estas se introducirán en este trabajo, pero su expansión e implementación final se darán en futuros proyectos. La primera de ellas será cambiar el terreno donde se entrena la locomoción. En el ejercicio realizado, el terreno es completamente plano, algo poco usual en el mundo real. La segunda mejora a integrar es el uso de cámaras. Estas podrán ayudar a evitar obstáculos o mejorar la locomoción en terrenos irregulares.
 
 \subsection{Terreno irregular}
-Para introducir el terreno irregular se va utilizar una nueva clase de configuración \clase{TerrainGeneratorCfg}. Esa clase permite definir un nuevo tipo de terreno, que luego es seleccionado dentro de \clase{TerrainImporterCfg}.
+Para introducir el terreno irregular se va utilizar una nueva clase de configuración \clase{TerrainGeneratorCfg}. Esa clase permite definir un nuevo tipo de terreno, que luego es seleccionado dentro de \clase{TerrainImporterCfg}. En un primer lugar, se define la generación del terreno; después, mediante los atributos \atributo{terran\_type} y \atributo{terrain\_generator}, se genera el terreno definido.
+
+La definición de la generación del terreno es la siguiente (código \ref{lst:antterr}):
+\begin{lstlisting}[style=mypython, caption={Definición del terreno con relieve a generar.},  label={lst:antterr}]
+RANDOM_ROUGH_CFG = terrain_gen.TerrainGeneratorCfg(
+    size = (100.0, 100.0),
+    num_rows = 1,
+    num_cols = 1,
+    horizontal_scale=0.1,
+    vertical_scale=0.005,
+    slope_threshold=0.75,
+    use_cache=False,
+    sub_terrains = {
+        "random_rough": terrain_gen.HfRandomUniformTerrainCfg(
+            proportion= 1.0, noise_range=(0.02, 0.10), noise_step=0.002
+        )
+    }
+)
+\end{lstlisting}
+Mediante este código, se define, de forma externa a la clase de configuración, una constante para la generación del terreno. Esta clase define un terreno irregular cuadrado de 100 metros de lado. Para generar el propio terreno, se indica como único sub-terreno una clase \clase{HfRandomUniformTerrainCfg} \cite{isaaclab_api}, característica de un terreno rugoso. Con su constructor, se indica la proporción de este terrero (al ser el único sub-terreno, 1), la altura máxima y mínima del terreno (indicado mediante \atributo{noise\_range}) y la definición de dicho terreno, es decir, la distancia mínima entre dos puntos adyacentes. En otros casos, se puede hacer uso del concepto de sub-terreno para crear distintas zonas con distintos tipos de terreno. En este caso, al ser meramente una prueba, basta con generar un único tipo de terreno.
+
+\subsection{Cámaras}
+La otra mejora a implementar es el uso de cámaras. Existen dos tipos de cámaras para incluir en la simulación, cámaras normales, generadas por \clase{CameraCfg}, y cámaras en mosaico \clase{TiledCameraCfg}. La cámara en mosaico se genera de una misma forma que la cámara normal. Su diferencia radica en el procesamiento interno por la GPU \cite{isaaclab_doc}, mejorando el procesamiento. Por esto, en este caso se usará directamente la cámara en mosaico. El código para su configuración es el siguiente, (código \ref{lst:camant}):
+\begin{lstlisting}[style=mypython, caption={Definición de la configuraciíon de la cámara a generar.},  label={lst:camant}]
+    camera: TiledCameraCfg = TiledCameraCfg(
+    prim_path="/World/envs/env_.*/Robot/torso/FrontCamera",
+    update_period= 0.1,
+    height = 64,
+    width= 64,
+    data_types= ["rgb", "depth"],
+    spawn= PinholeCameraCfg(
+        focal_length = 24.0, focus_distance = 400, clipping_range=(0.1, 20)
+    ),
+    offset= TiledCameraCfg.OffsetCfg(pos = (0.3, 0, 0), rot = (0.9239,0,-0.3827,0), convention = "world")
+    )
+\end{lstlisting}
+En este código, incluido dentro de la clase de configuración, \clase{RoughAntEnvCfg}, se define la configuración de la cámara. La cámara se acopla al lateral del torso de la araña, con una rotación sobre el eje y de -45 grados, de modo que apunte a la nueva superficie rugosa generada. Se permiten recopilar dos tipos de datos: los colores rgb y la profundidad. Se ajusta también los parámetros de la cámara, como el tipo de cámara a usar, mediante la clase \clase{PinholeCameraCfg}, el tiempo de actualización y la resolución. Esta configuración debe ser instanciada manualmente. Para ello, al definir la nueva clase principal para el entrenamiento, \clase{RoughAntEnv}, se debe re-definir la función \metodo{\_set\_up\_scene(self)} para generar la cámara (código \ref{lst:stuprou}).
+\begin{lstlisting}[style=mypython, caption={Implementación de la cámara en la escena.},  label={lst:stuprou}]
+    def _setup_scene(self):
+        super()._setup_scene()
+        self.camera = TiledCamera(self.cfg.camera)
+\end{lstlisting}
+
+El mayor inconveniente de utilizar las cámaras es el tamaño de la información. Para cualquier cámara, si se quiere usar la información de la profundidad, se deberá tratar con un tensor de forma [num\_envs, height, width, 1]. Esto quiere decir que para cada entorno, tomando el ejemplo propuesto, si se quisiese usar la imagen al completo como observación, se tendría un vector de observaciones con una dimensión superior de 4096 elementos; usando de ejemplo una resolución pobre como la propuesta. Esto hace su uso inviable en la mayoría de casos. Sin embargo, se pueden sortear estas dificultades realizando el procesamiento de imágenes externamente o pre-procesando la información para reducir el tamaño de la observación.
+
+Este ejercicio se deja para futuros trabajos. Este trabajo pretende cimentar las bases para que otros alumnos o interesados puedan trabajar en este campo. El uso de visión artificial junto con la inteligencia artificial sobresale como un tema interesante para su estudio.
+
+Todas estas mejoras se pueden encontrar en el proyecto preparado para el trabajo, incluido en los anexos. El archivo donde se implementan dichas mejoras es en el \verb|source/ARMetaToolPG/ARMetaToolPG/tasks/direct/ant/rough_ant.py|
+
+Analizado este problema, se va a proceder a analizar un nuevo ejemplo. A diferencia de este, se trata de un ejemplo que utiliza el modo por manejadores.
