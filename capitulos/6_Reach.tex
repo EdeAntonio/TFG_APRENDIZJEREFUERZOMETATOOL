@@ -201,7 +201,7 @@ Todas estas recompensas se suman para obtener la recompensa global. Cabe resalta
 \paragraph{TerminationsCfg}
 
 Otro de los manejadores que deben definirse es el manejador para las terminaciones. Este manejador se encarga de identificar cuando los episodios de los entornos debe terminarse. En el caso de estudio, solo existe una condición, que se agote el tiempo de simulación (código \ref{lst:terrea})
-\begin{lstlisting}[style=mypython, caption={Definición de las terminaciones dentro de su manejador, \clase{TerminationsCfg}},  label={lst:rewrea}]
+\begin{lstlisting}[style=mypython, caption={Definición de las terminaciones dentro de su manejador, \clase{TerminationsCfg}},  label={lst:terrea}]
 @configclass
 class TerminationsCfg:
     """Termination terms for the MDP."""
@@ -230,12 +230,17 @@ Una vez definidos los manejadores, estos se almacenan dentro del configurador ge
 
 \section{Configuración y registro del entorno específico}
 
-La configuración específica del entorno, \clase{UR3ReachEnvCfg}, usando el robot UR3e con gripper, viene definida dentro del archivo \verb|source/ARMetaToolPG/ARMetaToolPG/tasks/manager_based/reach/config/ur_3/joint_pos_env_cfg.py|, alojado dentro del proyecto general de este TFG. Para ajustar esta configuración al entorno y poder instanciar la clase, se definirán una serie de atributos dentro del método {\_\_pos\_init\_\_(self)}.
+La configuración específica del entorno, \clase{UR3ReachEnvCfg}, usando el robot UR3e con gripper, viene definida dentro del archivo \verb|source/ARMetaToolPG/ARMetaToolPG/tas|\verb|ks/manager_based/reach/config/ur_3/joint_pos_env_cfg.py|, alojado dentro del proyecto general de este TFG. Para ajustar esta configuración al entorno y poder instanciar la clase, se definirán una serie de atributos dentro del método {\_\_pos\_init\_\_(self)}.
 
 El primero de ellos que se definirá será el atributo \atributo{robot}. Para ello, en un archivo aparte, \verb|source/ARMetaToolPG/ARMetaToolPG/assets/robots/ur3_configuration.py|, se ha preparado la configuración de este robot, almacenándola en la constante \atributo{UR3e}. Dentro de esta configuración se utiliza un archivo usd, que es representativo del UR3e con gripper, y fue cedido por el equipo de MetaTool \cite{metatool}.
 
-Seguidamente se indica la referencia del robot para las recompensas. En el apartado anterior se ha visto como la referencia del robot quedaba indicada como \atributo{MISSING}. Ahora, esta referencia se ajusta a una parte del robot que tiene como centro de coordenadas el centro del gripper \atributo{gripper\_center}. Continuando con aspectos del robot, se definen también las acciones del brazo, las cuales también habían quedado pendiente. 
+Seguidamente se indica la referencia del robot para las recompensas. En el apartado anterior se ha visto como la referencia del robot quedaba indicada como \atributo{MISSING}. Ahora, esta referencia se ajusta a una parte del robot que tiene como centro de coordenadas el centro del gripper \atributo{gripper\_center}. Continuando con aspectos del robot, se definen también las acciones del brazo, las cuales también habían quedado pendiente. Por último, se reajusta la generación de coordenadas, donde se indica el rango del entrenamiento. 
 
+Además de esta clase de configuración, específica para el entrenamiento, se define otra para su posterior evaluación. Esta hereda de la clase anterior, sobre la cual se hacen dos únicas modificaciones: el numero de entornos y su espaciado, y la inhabilitación del ruido en las observaciones.
+
+Teniendo ambas configuraciones definidas y la configuración del agente previamente definida, ahora en \verb|source/ARMetaToolPG/ARMetaToolPG/tasks/manager_based/reach/| \verb|config/ur_3/agents/rsl_rl_ppo_cfg.py|, se puede registrar, por separado, las tareas de entrenamiento y evaluación. Este registro se da en el archivo: \verb|source/ARMetaToolPG/ARMetaToolPG/tasks/manager_based/reach/|\verb|config/ur_3/__init__.py|. Para ambos casos, se vuelve a realizar el registro como en el capítulo anterior, esta vez utilizando como punto de entrada para la clase general \clase{ManagerBasedRLEnv}.
+
+Teniendo ambas tareas registradas, se puede pasar a realizar el entrenamiento del agente. Esto se verá en el próximo apartado.
 
 \section{Entrenamiento y evaluación}
 
@@ -253,3 +258,4 @@ Para este caso se utilizarán 512 entornos. Es interesante notar que al utilizar
 Al evaluar la política de esta manera se observan un problema principal. Por un lado, existen posiciones que requieren que el robot contacte consigo mismo o con el suelo. Esto es un problema, pues puede inhabilitar el movimiento o dañar el robot. Como se espera poder implementar este robot en el robot real, en el próximo apartado se corregirá y mejorará el ejercicio para hacerlo apto para su implementación final.
 
 \section{Mejoras y correcciones}
+CORRECCIONES PENDIENTES (PENALIZACIÓN POR TOCAR MESA, CAMBIO DE RANGOS)

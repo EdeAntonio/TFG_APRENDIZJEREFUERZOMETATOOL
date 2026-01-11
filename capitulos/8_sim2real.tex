@@ -1,0 +1,97 @@
+\chapter{El problema Sim2Real}
+El problema Sim2Real hace referencia a la diferencia entre el rendimiento de una política en el simulador y en el mundo real. Estas diferencias pueden deberse a multiples factores. Puede presentarse por la mala representación de características del entorno; también por la percepción del robot, que puede hacer variar las observaciones \cite{da_survey_2025}. Estos y otros factores hacen que sea un problema común para todos los ejercicios de aprendizaje por refuerzo.
+
+En este capítulo se presentarán algunas soluciones para el problema. Después, se seleccionará aquella que se adapte mejor al trabajo, implementando la solución dentro del ejercicio de entrenamiento. A continuación, se implementará una nueva simulación dentro de IsaacSim. En esta nueva simulación, no se usarán las herramientas de IsaacLab. El objetivo es probar la política en un entorno de simulación externo al probado. El siguiente paso será la implementación en el robot real. Para ello, se ha diseñado un modulo en python usando herramientas de UR-RTDE \cite{noauthor_universalrobotsrtde_python_client_library_2025}. Por último, se realizará un ensayo, implementando una política en un robot.
+
+\section{Enfoques}
+El primer punto que se debe estudiar del problema Sim2Real son los distintos enfoques con los que se puede trabajar para minimizar su efecto. La manera más eficaz de poder adaptar a la implementación real es aleatorizar ciertos parámetros que puedan diferir en el mundo real. De este modo, se puede entrenar la política para afrontarse a variaciones en dichos parámetros. Teniendo en cuenta esto, surgen distintos tipos de aprendizaje \cite{sim2realpaper}:
+\begin{itemize}
+    \item Simulación ideal: no se incluye ningún parámetro aleatorizado.
+    \item \emph{Fine-tunning}: primero se entrena en una simulación ideal. Después, se identifican los parámetros que necesitan ser aleatorizados y se entrena para cada uno de ellos por separado.
+    \item Curriculum: de nuevo, entrena primero en una simulación ideal e identifica los parámetros a aleatorizar. En este caso, los parámetros se van incluyendo uno a uno, manteniendo los anteriores; finalizando por tanto con un entrenamiento en el que se tienen en cuenta todos los parámetros aleatorizados.
+    \item Ideal a aleatorio: primero se entrena con una simulación ideal y después se vuelve a entrenar con todos los parámetros aleatorizados.
+    \item Aleatorización del dominio: se entrena desde una simulación que contempla desde el principio todas las variables aleatorizadas.
+\end{itemize}
+
+En \emph{"Analysis of Randomization Effects on Sim2Real Transfer in
+Reinforcement Learning for Robotic Manipulation Tasks"} \cite{sim2realpaper} se realizó un estudio de estos distintos tipos de entrenamiento. De este mismo articulo se obtuvo los enfoques anteriores. El que obtuvo el mejor resultado fue el aprendizaje con aleatorización  del dominio, seguido por \emph{fine-tunning}. Debido a ser el mejor modo, y tener tiempo limitado dentro del entrenamiento, se escoge esta opción a seguir.
+
+En el próximo apartado se estudiará como incluir esta herramienta en el aprendizaje, concretamente en el ejercicio de empuje (pues en el de alcance viene integrado en el ejemplo).
+
+\section{Aleatorización del dominio.}
+La aleatorización del dominio consiste en proveer a la simulación de una serie de variaciones en el entrenamiento para generalizar la política en el mundo real \cite{tobin_domain_2017}. Para poner un ejemplo de esta implementación se introducirán para el ejemplo de empuje una variabilidad en algunas de sus observaciones y eventos.
+
+Dentro de las observaciones, la clase \clase{ObsTerm} permite introducir ruido a la observación mediante el parámetro del constructor \atributo{noise}. Esta ruido funcionará como la variabilidad del sistema. Para este, se utilizará la clase \clase{GaussianNoiseCfg}. Esta clase recibe la siguiente serie de parámetros en su constructor \cite{isaaclab_api}:
+\begin{itemize}
+    \item \atributo{mean}: la media del ruido. Esto nos permite incluir un desfase al parámetro. En este caso, la media será 0, pues no contamos con ninguna desviación en los medidores.
+    \item \atributo{std}: desviación estándar del ruido.
+    \item \atributo{operation}: operación para incluir el ruido
+\end{itemize}
+Este tipo de ruido se incluirá a las observaciones de la velocidad, la posición del objeto y la posición de la herramienta.
+
+Por otro lado, dentro del manejador de eventos tenemos distintas formas de introducir variabilidad al sistema. Esto se realiza mediante el parámetro \atributo{func}. En este ejemplo se han incluido dos funciones capaces de variar aspectos relevantes:
+\begin{itemize}
+    \item \atributo{randomize\_joint\_parameters}: varía la posición de las articulaciones desde las cuales se empieza.
+    \item \atributo{randomize\_rigid\_body\_material}: varía los parámetros de los objetos físicos.
+    \item \atributo{randomize\_rigid\_body\_mass}: varía la masa de los objetos rígidos en escena.
+\end{itemize}
+
+Con esta variabilidad incluida se ha analizado como incluir aleatorización del dominio y preparado el sistema para una posible implementación. A continuación se estudiará como realizar una simulación externa a la herramienta IsaacLab.
+
+\section{Implementación en IsaacSim}
+A continuación se va estudiar la implementación del sistema en IsaacSim. Esta implementación es de desarrollo propio, empleando la clase \clase{PolicyController} y \clase{ConfigLoader} entre otras herramientas de IsaacSim \cite{NVIDIA_IsaacSim}. El código se encuentra dentro del proyecto general, incluido en los anexos. A su vez, el código viene inspirado en los ejemplos de IsaacSim, implementando una estructura distinta ya que estos vienen en una extensión \cite[isaacsim.examples.interactive]{NVIDIA_IsaacSim}.
+
+El primer archivo relevante a esta implementación se encuentra en \verb|source/ARMetaToolPG/ARMetaToolPG/assets/policys/policy_controllers/robohabilis.py|. Este archivo declara una clase \clase{RobohabilisPullObjectPolicy} que hereda de la clase \clase{PolicyController}. Esta clase encarga de cargar y manejar la política. A continuación, se van a estudiar el objetivo de sus funciones, que serán a su vez sus responsabilidades:
+\begin{itemize}
+    \item \metodo{\_\_init\_\_(...)}: se encarga de de inicializar los principales atributos de la clase, como los objetos de la escena (entregados por el constructor) y el robot (creado y definido en la clase base); así como cargar la política, almacenada en este caso en \verb|source/ARMetaToolPG/ARMetaToolPG/assets/policys/policy_pull_object_rh|. Este método se define en la clase específica
+    \item \metodo{load\_policy(...)}: se encarga de cargar la política. Es usado en el constructor para este fin. Este método queda definido en la clase base.
+    \item \metodo{\_compute\_observations(...)}: se encarga de calcular las observaciones, almacenándolas en el parámetro \atributo{obs}. Este método se define en la clase específica.
+    \item \metodo{\_compute\_action(...)}: se encarga de calcular las acciones utilizando la política. Este método queda definido dentro de la clase base.
+    \item \metodo{forward(...)}: se encarga de aplicar las acciones al robot. Para ello se debe extraer la información de las acciones y preparar la indicación de la posición. Se debe recordar que en este caso se trabaja con dos tipos de acciones, binarias y de posición.
+    \item \metodo{initialize(...)}: se encarga de inicializar el robot y los objetos en la escena.
+\end{itemize}
+
+Esta clase después se almacena como atributo de otra clase, \clase{RoboHabilisTask}, la cual se define para agrupar los procesos de la tarea a ejecutar en IsaacSim. Esta clase se define en \verb|scripts/sim2sim/load_robohabilis.py|, el archivo que se ejecutará dentro de IsaacSim mediante $Window \rightarrow ScripEditor$. Esta clase tiene las siguientes funciones:
+\begin{itemize}
+    \item \metodo{\_\_init\_\_(...)}: se encarga de limpiar el mundo existente y crear uno nuevo. Caber resaltar que IsaacSim sigue la misma estructura que IsaacLab en los elementos de la simulación; estructura vista en el apartado \ref{ap:structisaac}.
+    \item \metodo{set\_up\_scene(...)}: se encarga de definir los elementos de la simulación. El robot se define dentro de \clase{RobohabilisPullObjectPolicy}, mientras que los objetos mediante la clase \clase{RigidObject} \cite[isaacsim.core.experimental.prims]{NVIDIA_IsaacSim}.
+    \item \metodo{load\_world\_async(...)}: se encarga de cargar el mundo e inicializar las físicas de simulación. Por último, llama a la función \metodo{setup\_post\_load(...)}, que veremos a continuación.
+    \item \metodo{setup\_post\_load(...)}: se encarga de cargar la llamada recurrente al método \metodo{on\_physics\_step(...)}, así como inicializar los distintos elementos. Por último, llama al método del mundo \atributo{play\_async(...)}, que mantiene el bucle a la llamada recurrente.
+    \item \metodo{on\_physics\_steps}: se encarga de llamar a la función \metodo{forward()}, la cual avanza la simulación.
+\end{itemize}
+
+Dentro de este archivo también se puede encontrar la función que define el bucle asíncrono. Para ello, se usa la biblioteca \api{asyncio} de python \cite{python_docs}. La llamada a esta función permite ejecutar el programa dentro de IsaacSim sin bloquear sus procesos internos. Para la ejecución del código, se utiliza la función \metodo{load\_robohabilis()}. Este método instancia la clase anterior, crea la escena con el método \metodo{se\_up\_scene()} y termina llamando a la función \metodo{load\_world\_async()}.
+
+Con esto, se puede ejecutar una simulación externa al aprendizaje. En este trabajo, este script ha sido de gran utilidad. No solo para la evaluación de la política, dónde es un paso clave en su implementación, sino también para explorar posiciones de robot, utilizando la clase \clase{SingleArticulation} dentro del controlador. Por otro lado, la evaluación de la posible implementación de la política de empuje, pues permite tener un fácil acceso a las posiciones de la herramienta y el objeto. En el siguiente apartado, se estudiará la implementación en el robot real, utilizando un cliente python \cite{noauthor_universalrobotsrtde_python_client_library_2025} y un robot UR3 como servidor, controlado desde el cliente python.
+
+\section{Implementación en robot real}
+
+Para la implementación en el robot real se van a utilizar dos lenguajes de programación. En primer lugar, utilizando python y la herramientas de Universal Robots de RTDE (Real-Time Data Exchange). Esta parte de la aplicación se encargará de cargar la política, recibir el estado del robot, calcular la acción siguiente y enviar dicha acción al robot. El robot se encarga de gestionar los movimientos del robot, regulando y sincronizando el proceso, preparar el robot para la ejecución del movimiento y aplicar las acciones que lo conforman.
+
+En este apartado, se estudiará cada código por encima. En el cliente python se analizará el código en su conjunto mediante el diagrama de clases y se explicará como se maneja la comunicación con el robot real.  Para el programa del robot se analizará el código al completo.
+
+\subsection{Cliente Python}
+
+El cliente python es el encargado de gestionar la política y enviar la información de las acciones al robot. Este cliente se conforma a través de un módulo de python desarrollado en este trabajo, bajo el nombre \api{sim2real}. Este módulo contiene varios ejercicios de implementación. En este apartado se estudiará uno de ellos, enfocado al ejercicio \emph{Reach}. Para ello, se analizará el diagrama de clases creado y mostrado en la figura \ref{fig:UMLsim2real}.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imagenes/Sim2Real.pdf}
+    \caption{Diagrama de clases del módulo sim2real aplicado al ejercicio \emph{Reach}.}
+    \label{fig:UMLsim2real}
+\end{figure}
+
+La pieza central de este diagrama es la clase \clase{EnviromentAdapter}. Esta clase se encarga de almacenar y gestionar el robot, la política y sus interacciones. Esta clase no es instanciable, sirve simplemente como base para los casos específicos. Esta clase generaliza parte de la construcción de las clases específicas, almacenando la política y la interfaz del robot; así como la gestión de las interacciones entre ambas, definidas en el método \metodo{step}. De esta clase hereda el adaptador específico para el caso del \emph{Reach}, la clase \emph{ReachUR3}. 
+
+La política queda almacena en el atributo \atributo{controlador}, a través de una clase \atributo{PolicyController}. Esta clase se ha extraído de un ejemplo de referencia recomendado por el proyecto MetaTool, un ejemplo para el alcance de un robot \emph{Kinova} \cite{Le_Lay_Kinova_Gen3_RL_2025}. A su vez, este es un código adaptado de la clase \clase{PolicyController} antes utilizada \cite{NVIDIA_IsaacSim}, extrayendo la creación del robot. En este módulo, la clase se vuelve a modificar, extrayendo el cálculo de observaciones que se realizará en la clase \clase{EnviromentAdapter}. El objetivo de esto es que esta clase funcione directamente como una red neuronal, a la que entregamos observaciones y devuelve acciones.
+
+El robot, por otro lado, queda almacenado en el atributo \atributo{robot}, a través de la clase \clase{IRobot}. Esta clase define una serie de métodos para el control de este. Por un lado, su constructor inherente, que se encarga de crear la conexión. Por otro lado, el método \metodo{get\_state(self)}, encargado de recibir la información y devolver una clase de datos con esta. Otro método que se debe definir es \metodo{send\_action(self)}, encargado de gestionar el envío de la acción al robot. Por último, se debe definir el método \metodo{\_disconnect}, encargado de gestionar la desconexión del robot. De esta clase, hereda la clase específica para el UR3, la cual define cada uno de estos métodos, utilizando herramientas de UR-RTDE \cite{noauthor_universalrobotsrtde_python_client_library_2025}. Estas herramientas permiten realizar una conexión con el robot e intercambiar información. La información intercambiada viene especificada en un fichero .xml. El cliente python recibe del robot la posición de las articulaciones (\atributo{actual\_q}), la velocidad de las articulaciones (\atributo{actual\_qd}) y un registro de salida (\atributo{output\_int\_register\_0}). Por otro lado, el robot recibe información dentro de sus registros de entrada, la acción a realizar mediante las posiciones de las articulaciones objetivo y un \atributo{watchdog}, que junto con el registro de salida permiten sincronizar los dos procesos. 
+
+De este modo, este módulo cliente de python permite intercambiar información con el robot y gestionar las interacciones de este con la política. A continuación, se estudiará como se utiliza esta información para crear un bucle de control en el robot, utilizando URscript.
+
+\subsection{Servidor robot.}
+
+\section{Ensayos}
+\subsection{Prueba simulada}
+\subsection{Prueba real}
+

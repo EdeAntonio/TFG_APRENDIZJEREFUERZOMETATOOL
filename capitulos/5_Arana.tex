@@ -534,7 +534,7 @@ El primer paso será realizar un entrenamiento de prueba, para ver que el entorn
     python scripts/reinforcement_learning/rsl_rl/train.py --task
     Isaac-Ant-Direct-v0 --num_envs 4
 \end{lstlisting}
-Con esta sentencia ejecutamos el entrenamiento, indicando la tarea que se quiere entrenar y el número de entornos a utilizar. En un primer momento se van a utilizar un número pequeño de entornos para valorar la construcción del entorno dentro del simulador. Al ejecutralo, se abre la aplicación IsaacSim y se generan cuantro de los robots a entrenar (figura \ref{fig:entvis}). Se observa como los cuatro robots mueven sus articulaciones de forma herrática y al caer su torso sobre el suelo se reinicia el entorno.
+Con esta sentencia ejecutamos el entrenamiento, indicando la tarea que se quiere entrenar y el número de entornos a utilizar. En un primer momento se van a utilizar un número pequeño de entornos para valorar la construcción del entorno dentro del simulador. Al ejecutarlo, se abre la aplicación IsaacSim y se generan cuando de los robots a entrenar (figura \ref{fig:entvis}). Se observa como los cuatro robots mueven sus articulaciones de forma errática y al caer su torso sobre el suelo se reinicia el entorno.
 
 \begin{figure}[ht]
     \label{fig:entvis}
@@ -548,7 +548,7 @@ Una vez se ha realizado una prueba satisfactoria, se puede proceder a realizar e
     python scripts/reinforcement_learning/rsl_rl/train.py --task
     Isaac-Ant-Direct-v0 --num_envs 512 --headless
 \end{lstlisting}
-Con esta sentencia, ejecutamos el mismo código de entrenamiento, pero aumentando el número de entornos a 512 y utilizando la nueva etiqueta \verb|--headless|. Esta última etiqueta permite ejecutar el entrenamiento sin visualizarlo en el simulador, lo que permite acortar el tiempo de entrenamiento al usar menos recursos. Para poder evaluar el proceso de entrenamiento se obtiene una serie de información en la terminal; esta información se muestra en la figura \ref{fig:entanthls1}. Dentro del cajetín se obtiene información acerca del número de iteraciones o la longitud del episodio. El valor más relevante para evaluar el proceso de entrenamiento es la recompensa media. Está no solo ayuda al robot al apredizaje si no da información sobre como se desemvuelve el ajente dentro en la tarea. En su última iteración (figura \ref{fig:antenthls999}), la recompensa media asciende a 12055.38, por lo que se puede intuir que la araña realiza correctamente el ejercicio de locomoción. 
+Con esta sentencia, ejecutamos el mismo código de entrenamiento, pero aumentando el número de entornos a 512 y utilizando la nueva etiqueta \verb|--headless|. Esta última etiqueta permite ejecutar el entrenamiento sin visualizarlo en el simulador, lo que permite acortar el tiempo de entrenamiento al usar menos recursos. Para poder evaluar el proceso de entrenamiento se obtiene una serie de información en la terminal; esta información se muestra en la figura \ref{fig:entanthls1}. Dentro del cajetín se obtiene información acerca del número de iteraciones o la longitud del episodio. El valor más relevante para evaluar el proceso de entrenamiento es la recompensa media. Está no solo ayuda al robot al aprendizaje si no da información sobre como se desenvuelve el agente dentro en la tarea. En su última iteración (figura \ref{fig:antenthls999}), la recompensa media asciende a 12055.38, por lo que se puede intuir que la araña realiza correctamente el ejercicio de locomoción. 
 
 \begin{figure}[ht]
     \label{fig:antenthls1}
@@ -628,4 +628,4 @@ Este ejercicio se deja para futuros trabajos. Este trabajo pretende cimentar las
 
 Todas estas mejoras se pueden encontrar en el proyecto preparado para el trabajo, incluido en los anexos. El archivo donde se implementan dichas mejoras es en el \verb|source/ARMetaToolPG/ARMetaToolPG/tasks/direct/ant/rough_ant.py|
 
-Analizado este problema, se va a proceder a analizar un nuevo ejemplo. A diferencia de este, se trata de un ejemplo que utiliza el modo por manejadores.
+Analizado este problema, se va a proceder a analizar un nuevo ejemplo. A diferencia de este, en él se utiliza el modo por manejadores.
