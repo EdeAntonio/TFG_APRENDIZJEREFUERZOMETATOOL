@@ -1,4 +1,6 @@
 \chapter{El problema Sim2Real}
+\label{ch:sim2real}
+
 El problema Sim2Real hace referencia a la diferencia entre el rendimiento de una política en el simulador y en el mundo real. Estas diferencias pueden deberse a multiples factores. Puede presentarse por la mala representación de características del entorno; también por la percepción del robot, que puede hacer variar las observaciones \cite{da_survey_2025}. Estos y otros factores hacen que sea un problema común para todos los ejercicios de aprendizaje por refuerzo.
 
 En este capítulo se presentarán algunas soluciones para el problema. Después, se seleccionará aquella que se adapte mejor al trabajo, implementando la solución dentro del ejercicio de entrenamiento. A continuación, se implementará una nueva simulación dentro de IsaacSim. En esta nueva simulación, no se usarán las herramientas de IsaacLab. El objetivo es probar la política en un entorno de simulación externo al probado. El siguiente paso será la implementación en el robot real. Para ello, se ha diseñado un modulo en python usando herramientas de UR-RTDE \cite{noauthor_universalrobotsrtde_python_client_library_2025}. Por último, se realizará un ensayo, implementando una política en un robot.
@@ -89,9 +91,132 @@ El robot, por otro lado, queda almacenado en el atributo \atributo{robot}, a tra
 
 De este modo, este módulo cliente de python permite intercambiar información con el robot y gestionar las interacciones de este con la política. A continuación, se estudiará como se utiliza esta información para crear un bucle de control en el robot, utilizando URscript.
 
-\subsection{Servidor robot.}
+\subsection{Servidor robot}
+
+El cliente python, como se ha visto, es el encargado de enviar las posiciones al robot. Esto lo hace escribiendo en sus registros. El robot por su parte, actúa como un servidor, recibiendo las posiciones en sus registros y gestionándolas, llevando al robot hacia estas. Esto se hace a través de un lenguaje de programación concreto, URscript \cite{URScriptLanguage}. Con este se crea un código que luego se incluye al programa del robot, ejecutándolo en un bucle continuo. A continuación se va a analizar por completo el código, que se muestra en la lista \ref{lst:urscript}.
+\begin{lstlisting}[style=mypython, caption={Código implementado en el programa del robot UR3e},  label={lst:urscript}]
+v = 0.5
+a = 0.5
+pose_init = [1.57, -1.744, 1.57, 4.7102, 4.7102, 4.3602]
+global ready = False
+write_output_integer_register(0, 0)
+
+def inicio():
+    global joints =  pose_init
+    movej(joints, a, v)
+    ready = True
+    global flag = False
+    write_output_integer_register(0, 1)
+end
+
+def updateActionRTDE():
+    global action = [1.57, -1.744, 1.57, 4.7102, 4.7102, 4.3602]
+    i=0
+    q= get_actual_joint_positions()
+    while i<6:
+        action = read_input_float_register(i)
+        i = i + 1
+    end
+    return action
+end
+
+# Definicion del programa principal.
+def main_program():
+    while ready == False or get_digital_out(2) == False or read_input_integer_register(0) == 0:
+        if(ready == False):
+            inicio()
+        else:
+            sync()
+        end
+    end
+    while get_digital_out(2) == True and read_input_integer_register(0) == 1:
+        sync()
+        global flag = True
+        joints = updateActionRTDE()
+        movej(joints, v, a)
+        pose = get_actual_tcp_pose()
+        rpy=rotvec2rpy([pose[3], pose[4], pose[5]])
+        global roll = rpy[0]
+        global pitch = rpy[1]
+        global yaw = rpy[2]
+    end
+    write_output_integer_register(0, 0)
+    sync()
+end
+
+main_program()
+\end{lstlisting}
+
+En primer lugar, se definen las distintas variables del programa: la velocidad y la aceleración, la posición inicial, un indicador del estado del robot; a su vez que se desactiva el registro de salida, para cerrar cualquier cliente activo. A continuación, se definen dos funciones para la ejecución del programa. Por un lado, la función de inicio, que lleva al robot a la posición inicial y activa el para que el registro de salida para que se pueda conectar el cliente. Por el otro, la función para la lectura de los registros, la cual devuelve un array con las posiciones indicadas en ellos. Definidas las variables y las funciones principales, se define la función principal que se ejecutará en bucle.
+
+La función principal tiene dos bucles, cada uno de los cuales responde a una fase del funcionamiento. El primero de los bucles llama a la función de inicio, siempre que el robot no se encuentre listo. Una vez se encuentre listo, se sincroniza continuamente con el cliente hasta que se den las condiciones necesarias para continuar: robot listo, señal digital del robot activada y \emph{watchdog} activado. Cuando se cumplen estas condiciones, se sale del bucle y se entra en el segundo. Este segundo realiza la acción de control, llamando a la función de lectura de registros. Concretamente, se extrae la acción, se mueve el robot hacia la posición requerida por la red neuronal y se calcula el RPY del efector final (\emph{roll pitch yaw}). Este bucle se mantiene mientras el \emph{watchdog} y la señal digital se mantengan activos.
+
+De este modo, se ejerce un control sobre el despliegue de la política en el robot, pudiendo continuar con la realización de pruebas. En el siguiente apartado se estudiará como se realizan estas y los resultados obtenidos.
 
 \section{Ensayos}
-\subsection{Prueba simulada}
-\subsection{Prueba real}
+Los ensayos se realizarán sobre el ejercicio presentado reach. Se realizará en primer lugar una prueba simulada y después una prueba en el robot real. La prueba simulada se realizará dentro de un simulador proporcionado por Universal Robots, URSim \cite{ur_ursim}. Este simulador utiliza la misma interfaz de control que el robot real, PolyScope \cite{ur_polyscope},  y simula el movimiento de este. Esta misma interfaz es la que se utiliza para controlar el robot real, por lo que el código y la metodología son los mismos en ambos ensayos.
 
+\subsection{Prueba simulada}
+La prueba simulada es útil para verificar el comportamiento correcto del robot de forma segura antes de su implementación. El simulador utilizado es provisto por Universal Robots, adecuándose a las características reales del robot, teniendo en cuenta limitaciones en la fuerza, al no estar conectado a un brazo robótico real \cite{ur_ursim}.
+
+El ensayo se realiza en una serie de pasos. En primer lugar, se carga el script dentro del programa del robot, para después ejecutarlo. Este programa lleva al robot a la posición inicial y espera la referencia de las posiciones. En segundo lugar, se ejecuta el cliente python desde el mismo u otro ordenador en la misma red. Este cliente se conecta a la IP del robot y envía las referencias de las posiciones. Una vez el cliente esta conectado y enviando posiciones, se activa la señal digital 2 para dar comienzo al movimiento. Por último, una vez el robot se detiene, se anotan los valores de la posición del efector final. Estos valores se indican en la pestaña \emph{Move}, en la cual hay que seleccionar que estén referenciados a la base. También se anotan los valores de \emph{roll}, \emph{pitch} y \emph{yaw}, indicados en la sub-pestaña de variables, dentro de la pestaña \emph{Program}. Finalizada la prueba, se desactiva la señal digital 2, desconectando el cliente y llevando el robot a su posición inicial.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imagenes/programrpy.png}
+    \caption{Pestaña \emph{Program}, con la señal del }
+    \label{fig:Program}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imagenes/digital_2_poliscope.png}
+    \caption{Pestaña \emph{I/O} con señal digital 2 activa.}
+    \label{fig:Digital}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imagenes/movedata.png}
+    \caption{Pestaña \emph{Move} en un ensayo implementado.}
+    \label{fig:Move}
+\end{figure}
+
+Las pruebas realizadas en las simulación permitieron confirmar el correcto funcionamiento de la implementación del Sim2Real. El robot mantenía un movimiento constante y sin variaciones, verificando la funcionalidad del programa cliente y del robot. No obstante, el error obtenido fue considerable. Por un lado, al trabajar sin la herramienta definida dentro de la simulación se obtuvo un desplazamiento cercano a los 10cm, aproximadamente el tamaño del gripper. Al mantener una rotación fija, esta diferencia solo afecto al eje Z, obteniendo en los otros ejes una desviación cercana a los 3mm en el caso de X y 5mm en el caso de Y. Por otro lado, la desviación obtenida en los ejes fue de 2'7cm para el eje X, 3'2cm para el Y y 3'7cm para el Z. Estos valores no indican una precisión suficiente para su implementación en tareas reales, pero demuestran el funcionamiento de las redes neuronales para el control del robot. Mediante una revisión de las recompensas, aumentando el valor de la precisión, así como la realización de entrenamientos más largos, se podría obtener una mayor precisión. Los datos presentados se muestran en los anexos.
+
+\subsection{Prueba real}
+Las pruebas realizadas en el entorno real presentaron resultados coherentes con los obtenidos en simulación. No obstante, durante su ejecución surgieron diversas dificultades técnicas y operativas que limitaron el alcance y la repetibilidad de los ensayos. En este apartado se describen los principales problemas encontrados durante la realización de las pruebas reales, las soluciones implementadas para mitigarlos y aquellos aspectos que no pudieron resolverse dentro del marco temporal y técnico del presente trabajo.
+
+El primer problema en la implementación fue la normalización de ángulos. Las redes neuronales trabajadas utilizan rangos de ángulos normalizados, algo que no sucede en los robots reales. Para solventar el problema se introduce una normalización a la entrada y una función para calcular el ángulo más próximo. Por ejemplo, al recibir un angulo de 4.7124 radianes convierte este dato en -1.5708. Si la red neuronal calcula ir a la posición -1.9199 radianes, se envía la posición equivalente más cercana, en este caso 4.3633 radianes.
+
+\begin{lstlisting}[style=mypython, caption={Código para la normalización del ángulo dentro del cliente python, dentro de la clase \clase{UR3Sim}, en el método \metodo{get\_state}},  label={lst:normang}]
+            for i in range(len(robotstate.joint_position)):
+                robotstate.joint_position[i] =(robotstate.joint_position_real[i]+math.pi)%(2*math.pi)-math.pi
+\end{lstlisting}
+
+\begin{lstlisting}[style=mypython, caption={Código para la búsqueda del ángulo próximo dentro del cliente python, dentro de la clase \clase{UR3Sim}, en el método \metodo{send\_action}},  label={lst:normang}]
+            for i in range(len(joint_pos)):
+                diff= (joint_pos[i] - robotstate.joint_position_real[i] + math.pi) % (2*math.pi) - math.pi
+                joint_pos[i]=robotstate.joint_position_real[i]+diff
+\end{lstlisting}
+
+Con esta corrección de los ángulos implementada se realizaron primeras pruebas, en los que aparecieron errores referentes a las articulaciones del robot. Con el objetivo de identificar la posible causa de los errores se redujo la velocidad del robot. La función implementada para el movimiento, \metodo{servoj}, permite enviar una posición objetivo al robot hacia la que debe moverse durante cierto tiempo \cite{URScriptLanguage}. Los parámetros de esta función no permiten realizar un control preciso de la velocidad sin afectar a la calidad del movimiento. Por esto, se implementó una interpolación para acortar la distancia indicada al robot a través de una interpolación.
+
+\begin{lstlisting}[style=mypython, caption={Código para la reducción de la distancia mediante interpolción, dentro de la clase \clase{UR3Sim}, en el método \metodo{send\_action}},  label={lst:normang}]
+            step=np.zeros_like(joint_pos)
+            for i in range(len(joint_pos)):
+                delta_q=joint_pos[i]- robotstate.joint_position_real[i]
+                max_step= self.max_step_d*self.dt
+                step[i]=np.clip(delta_q, -max_step, max_step)
+                joint_pos[i]=robotstate.joint_position_real[i]+ step[i]
+\end{lstlisting}
+
+Gracias a esta función se pudieron realizar pruebas con el robot real. Mediante esta función, con un salto de máximo de 1 rad/s aplicando una frecuencia de 125Hz, se realizaron varias 5 pruebas exitosas. Sin embargo, la velocidad se vuelve demasiado baja para que la implementación sea funcional. No obstante, en dos de estas pruebas se obtuvieron valores aproximados a la simulación, con un margen de error en el orden de los milímetros, verificando de este modo los resultados obtenidos en la simulación.
+
+Los resultados obtenidos presentan un margen de mejora significativo. Por un lado, un análisis más detallado del sistema de control del UR3e permitiría esclarecer la necesidad de las limitaciones de velocidad impuestas durante los ensayos. Asimismo, en pruebas preliminares con otros métodos de control se detectó la presencia de ruido en las posiciones entregadas al robot, provocando vibraciones durante su movimiento. Este fenómeno podría estar relacionado con los fallos observados en las articulaciones, por lo que resulta de interés un estudio futuro sobre técnicas de filtrado, incluyendo su integración en redes neuronales.
+
+No obstante, los resultados obtenidos demuestran la funcionalidad del enfoque de aprendizaje por refuerzo, así como la correcta implementación de la política de control. Una vez abordados los problemas asociados al control del robot, sería posible ampliar el alcance del sistema hacia ejercicios más complejos. Cabe destacar que el uso de redes neuronales resulta especialmente adecuado para tareas de mayor complejidad, manteniéndose inalterado el procedimiento de implementación de la política.
+
+En este contexto, tareas como el empuje con herramienta se presentan como una extensión natural del trabajo realizado. De hecho, dentro del módulo cliente Sim2Real se ha preparado una variante orientada a este caso; sin embargo, debido a dificultades surgidas durante el entrenamiento y a las limitaciones observadas en el sistema de control, no fue posible su implementación en el marco del presente trabajo.
+
+Realizadas estas pruebas, se presentan en el siguiente capítulo las conclusiones finales del proyecto.

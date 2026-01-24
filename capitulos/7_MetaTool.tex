@@ -41,7 +41,29 @@ Para el primer problema se tomo la ruta más sencilla y eficiente, mover el eje 
 
 Esto punto fue una de las grandes lecciones derivadas de la colaboración con el proyecto MetaTool. Dentro del aprendizaje por refuerzo hay cierta información que se dan al robot y cierta información que se quiere que aprenda por su cuenta. La ideas que se den al robot limitaran a su vez el rango del aprendizaje. Por ejemplo, al darle el punto de agarre, no prueba distintas posiciones de agarre, las cuales podrían serle beneficiosas en este ejercicio. Sin embargo, si no le damos dicho punto, no se tiene una referencia clara para recompensarle por acercarse a la herramienta; también puede cogerlo desde un punto que no es interesante para el ejercicio. Se debe encontrar el punto exacto donde se maximiza la eficiencia del entrenamiento, intentando limitar su entrenamiento lo mínimo posible.
 
-Para el segundo problema, se decidió crear una nueva recompensa, o en este caso más bien penalización. Para ello, PENDIENTE.
+Para el segundo problema, se decidió crear una nueva recompensa, o en este caso más bien penalización. Esta penalización se da cuando se entra en contacto con la mesa. Para detectar este contacto, se incluyó un sensor de contacto entre la mesa y el gripper. Esta sensor de contacto se debe definir dentro de la clase específica de configuración, \clase{FrankaCubeLiftEnvCfg}. Se define de la siguiente manera (código \ref{lst:fcontactsens}):
+\begin{lstlisting}[style=mypython, caption={Definición del sensor de contacto, dentro de la clase \clase{FrankaCubeLiftEnvCfg}},  label={lst:fcontactsens}]
+        self.scene.robot_desk_contact_sensor = ContactSensorCfg(
+            prim_path="{ENV_REGEX_NS}/Table",
+            filter_prim_paths_expr = ["{ENV_REGEX_NS}/Robot/*."],
+            track_air_time=True,
+            track_pose=True,
+            update_period=0.0,
+            debug_vis=False,
+            force_threshold = 1.0
+        )
+\end{lstlisting}
+Este objeto calcula la fuerza ejercida entre la mesa y las distintas partes del robot. Para que se pueda instanciar este objeto, se necesita también definir como verdadera el atributo de la configuración de la mesa \atributo{contact\_sensor\_active}. Además, dentro de este sensor, se establece límite de 1.0, mediante la variable \atributo{force\_threashold}. Esto hace que el sensor no detecte fuerzas menores de la indicada. Tomando en consideración este sensor, se definió la siguiente función para la penalización (código \ref{lst:touchdeskpen}):
+\begin{lstlisting}[style=mypython, caption={Definición del sensor de contacto,},  label={lst:touchdeskpen}]
+def touch_desk(env: ManagerBasedRLEnv,  
+    robot_desk_contact_sensor_cfg: SceneEntityCfg = SceneEntityCfg("robot_desk_contact_sensor"),
+    ):
+    tool_contact_sensor: ContactSensor = env.scene[robot_desk_contact_sensor_cfg.name]
+    contact_active = (torch.norm(tool_contact_sensor.data.net_forces_w, -1) > 0.0).bool()
+    return torch.where(contact_active, 1, 0)
+\end{lstlisting}
+
+Con esta penalización se devuelve una señal 1 en el momento en que se detecta una fuerza en cualquiera de los ejes. Al tener un límite establecido, el sensor no salta con ruido inherente a un contacto real. De este modo, se penaliza que el robot toque la mesa, pero no lo prohíbe, pues contactos puntuales son inevitables en el agarre. También es importante por esto ajustar bien la penalización. Al ser un valor binario, la penalización dependerá enteramente en el peso. En este caso, al querer evitar lo máximo posible el contacto, se escoge una ponderación de -3. Siendo premiado el alcance a 1 y el levantamiento a 15, este rango permite conseguir el objetivo.
 
 \section{Depuración del arraste con herramienta}
 
@@ -81,28 +103,22 @@ def object_is_pulled(
     object_contact_sensor_cfg: SceneEntityCfg = SceneEntityCfg("object_contact_sensor"),
     tool_contact_sensor_cfg: SceneEntityCfg = SceneEntityCfg("tool_contact_sensor"),
 ) -> torch.Tensor:
-    """Reward the agent for grasping the object."""
     tool: RigidObject = env.scene[tool_cfg.name]
     object: RigidObject = env.scene[object_cfg.name]
     object_contact_sensor: ContactSensor = env.scene[object_contact_sensor_cfg.name]
     tool_contact_sensor: ContactSensor = env.scene[tool_contact_sensor_cfg.name]
-    # Check robot tool active contact (current_contact_time > 0)
     tool_contact_active = (tool_contact_sensor.data.current_contact_time.squeeze(-1) > 0).float()
-    # Check tool object active contact (current_contact_time > 0)
     object_contact_active = (object_contact_sensor.data.current_contact_time.squeeze(-1) > 0).float()
     # Get positions of tool and object
-    tool_pos_w = tool.data.root_pos_w # Target object position: (num_envs, 3)
+    tool_pos_w = tool.data.root_pos_w
     object_pos_w = object.data.root_pos_w # End-effector position: (num_envs, 3)
     object_tool_distance = torch.norm(tool_pos_w - object_pos_w, dim=1) # Distance of the end-effector to the object: (num_envs,)
-    # Determine if the object is near the tool
-    # object_tool_distance = torch.where(object_tool_distance > minimal_distance, object_tool_distance, 0.0)
     valid_contact = (tool_contact_active * object_contact_active).bool()
     object_tool_distance = torch.where(valid_contact, 0.0, object_tool_distance)
     # Compute distance-based reward component
     distance_reward = 1 - torch.tanh(object_tool_distance / std)
     #Combine contact presence and proximity reward
-    total_reward = object_contact_active * distance_reward * tool_contact_active
-    # total_reward = object_contact_active * tool_contact_active
+    total_reward = object_contact_active * distance_reward * tool_contact_active  
     return total_reward
 \end{lstlisting}
 Antes de evaluar el problema, se va a analizar como se calcula la recompensa. Este análisis será también importante para ver un ejemplo de como se calculan las recompensas normalizadas.
@@ -112,8 +128,24 @@ En primer lugar, se extraen los distintos elementos del entorno. Entre ellos se 
 A primera se puede ver que el cálculo de la posición no afecta en sí al cálculo de la recompensa, pues para obtener recompensa debe haber contacto activo y siempre que haya contacto activo se obtendrá una distancia de 0 y recompensa de 1. Por tanto, este cálculo se puede omitir. Sin embargo, esta no es la raíz del problema.
 
 Habiendo realizado una depuración en tiempo de compilación, se observó que los sensores de contacto tienen un ruido. Este ruido hace que el sensor se active a pesar de no encontrar un contacto real. Para resolver este problema se introdujo una nueva variable dentro de los sensores de contacto, \atributo{force\_threshold}. Esta modificación se realiza dentro de la clase específica de configuración, \clase{RobohabilisCubePullEnvCfg}, definida dentro del archivo \verb|source/MT_ext/MT_ext/tasks/manipulation/pull_object/config/robohabilis/joint_pos_env_cfg.py|. De este modo, se limita la fuerza con la cual el sensor se activa, evitando que salte con el ruido. Sin embargo, al volver a depurar el código, se observó como seguía activándose. Esto era debido a que la variable \atributo{contact\_alive} no tiene en cuenta este límite. Por esto, se utilizo la variable \atributo{net\_forces\_w}, la cual si se ve afectada por esta variable. De este modo se solucionó al completo el problema, resultando en el siguiente código:
+\begin{lstlisting}[style=mypython, caption={Corrección de la función para el cálculo de la recompensa por arrastre.},  label={lst:objpullrewdefcorrected}]
+def object_is_pulled(
+    env: ManagerBasedRLEnv,
+    object_contact_sensor_cfg: SceneEntityCfg = SceneEntityCfg("object_contact_sensor"),
+    tool_contact_sensor_cfg: SceneEntityCfg = SceneEntityCfg("tool_contact_sensor"),
+) -> torch.Tensor:
+    object_contact_sensor: ContactSensor = env.scene[object_contact_sensor_cfg.name]
+    tool_contact_sensor: ContactSensor = env.scene[tool_contact_sensor_cfg.name]
 
-PENDIENTE DE INCLUIR.
+    tool_contact_active = (torch.norm(tool_contact_sensor.data.net_forces_w, -1) > 0).float()
+    object_contact_active = (torch.norm(object_contact_sensor.data.net_forces_w, -1) > 0).float()
 
-CONCLUSIONES PENDIENTES.
+    valid_contact = tool_contact_active * object_contact_active
 
+    return valid_contact
+\end{lstlisting}
+
+De este modo, corrigiendo el problema principal, se consigue el objetivo fijado. La mejora en el nuevo ejercicio es que, al entrar en contacto con el objeto, este contacto se mantiene, resultando en un mayor control sobre la posición.
+
+\subsection{Conclusiones}
+Estos ejercicios fueron los primeros tratados dentro de este trabajo. Pese a que las correcciones necesarias fueron menores, el análisis completo para  encontrar dichos errores, utilizando las distintas herramientas de depuración, permitió comprender el flujo de ejecución de los códigos a la estructuración de la información. Los conceptos anteriormente expuestos provienen en gran parte del análisis y corrección de estos ejercicios expuestos. A su vez, también fueron claves para el siguiente capítulo, donde se desarrollará un programa para la implementación de políticas.

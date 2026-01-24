@@ -88,7 +88,7 @@ Como ya se ha mencionado, el elemento que definirá gran parte de esta implement
     \caption{Imagen del diagrama referente a la clase \clase{DirectRLEnvCfg}.}
 \end{figure}
 
-La clase \clase{DirectRLEnvCfg} (figura \ref{fig:clasedirectrlenvcfg}), al igual que la anterior, se encuentra definida el código fuente; pudiéndose acceder de la misma manera desde la API \emph{isaaclab.evns.DirectRLEnvCfg}. Esta clase esta definida como una \emph{config\_class}. Este tipo de clase se introdujo en el apartado \ref{ap:clasesconfigclass}. Esta tipo de clase almacena únicamente atributos, haciéndola más fácil de gestionar dentro del funcionamiento de la herramienta. En este apartado, se van a enumerar y analizar los atributos más relevantes de esta clase y cómo afectan al entorno.
+La clase \clase{DirectRLEnvCfg} (figura \ref{fig:clasedirectrlenvcfg}), al igual que la anterior, se encuentra definida el código fuente; pudiéndose acceder de la misma manera desde la API \api{isaaclab.evns.DirectRLEnvCfg}. Esta clase esta definida como una \emph{config\_class}. Este tipo de clase se introdujo en el apartado \ref{ap:clasesconfigclass}. Esta tipo de clase almacena únicamente atributos, haciéndola más fácil de gestionar dentro del funcionamiento de la herramienta. En este apartado, se van a enumerar y analizar los atributos más relevantes de esta clase y cómo afectan al entorno.
 \begin{itemize}
     \item \atributo{sim}: Almacena una clase \clase{SimulationCfg}, encargada de configurar los principales parámetros de la simulación.
     \item \atributo{decimation}: Amacena un valor numérico entero (int) que define el número de acciones realizadas antes de actualizar la política.
@@ -116,7 +116,7 @@ La clase a estudiar, es la clase \clase{AntEnvCfg}. Esta clase esta definida den
 
 En este caso, al ser una implementación de una clase, se va estudiar el código detenidamente.
 
-Al comienzo del código, se importan las distintas herramientas y bibliotecas que vamos a utilizar. Entre ellas se pueden encontrar las clases de simulación, las clases de configuración, etc. Para poder importar una clase, un método o una constante, primero se debe localizar la api donde esta definida y después indicarla. En el código \ref{lst:impantapi}, se puede ver un ejemplo, donde se importa la clase \clase{TerraimImporterCfg} de la API \api{isaaclab.terrains}. También se pueden importar clases definidas en archivos aparte, como se hace con la constante \emph{ANT\_CFG} (código \ref{lst:impantdir}), que guarda la configuración del robot.
+Al comienzo del código, se importan las distintas herramientas y bibliotecas que vamos a utilizar. Entre ellas se pueden encontrar las clases de simulación, las clases de configuración, etc. Para poder importar una clase, un método o una constante, primero se debe localizar la api donde esta definida y después indicarla. En el código \ref{lst:impantapi}, se puede ver un ejemplo, donde se importa la clase \clase{TerraimImporterCfg} de la API \api{isaaclab.terrains}. También se pueden importar clases definidas en archivos aparte, como se hace con la constante \atributo{ANT\_CFG} (código \ref{lst:impantdir}), que guarda la configuración del robot.
 
 \begin{lstlisting}[style=mypython, caption={Ejemplo para importar una clase de una API},  label={lst:impantapi}]
 from isaaclab.terrain import TerrainImporterCfg
@@ -149,7 +149,7 @@ Por último, para terminar de definir la configuración del entorno, se deben in
 \end{figure}
 
 La clase \clase{ArticulationCfg} sirve para configurar la implementación del robot del entorno. Esta configuración se puede definir a través de su constructor. En este apartado, se estudiará la implementación de esta clase para el caso concreto de locomoción para el robot araña. Esta implementación se realiza en el archivo 
-\verb|source/isaaclab\_assets/| \verb|isaaclab\_assets/robots/ant.py|
+\verb|source/isaaclab_assets/| \verb|isaaclab_assets/robots/ant.py|
  \cite{mittal2025isaaclab}, cuyo código se muestra en \ref{lst:artcfgant}.
 
 Esta clase hereda de la llamada \clase{AssetBaseCfg}, dirigida a configurar cada prim de la simulación. Esta clase, asocia el prim a una dirección dentro del mundo (definido en el apartado \ref{ap:structisaac}) y define la forma en la que se crea, normalmente a través de un archivo USD. También define si este archivo es visible, a través del atributo \atributo{debug\_bis} y con que objetos puede colisionar, mediante el atributo \atributo{colission\_group}. Por esto, usaremos estos mismos atributos para definir el robot.

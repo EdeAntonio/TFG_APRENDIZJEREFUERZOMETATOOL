@@ -1,0 +1,46 @@
+\chapter{Conclusiones Finales}
+
+El trabajo realizado presenta el marco teórico del aprendizaje por refuerzo y su implementación mediante la herramienta IsaacLab, todo ello enfocado a la robótica. El aprendizaje por refuerzo es una de las tecnologías punteras en el control de robots. Este trabajo es una base para la implementación de esta disciplina dentro de la escuela, siendo relevante para futuros trabajos. En este capítulo se analizará el aporte de este trabajo y los resultados obtenidos.
+
+\section{Resultados}
+
+Al comienzo del trabajo se presentaron una serie de objetivos: dos objetivos principales y ocho secundarios. En esta sección se analizará el cumplimiento de estos objetivos, comenzando por los objetivos secundarios, para después presentar los principales.
+
+\begin{itemize}
+\item Objetivo 1: Se realizó un estudio del arte. En este, se presentan la relación del aprendizaje por refuerzo con la robótica y distintos artículos que muestran aplicaciones prácticas en distintas disciplinas.
+\item Objetivo 2: Se realizó una extensa base teórica del aprendizaje por refuerzo. En ella, se presentó la definición y la estructura del aprendizaje, su base matemática junto con los MDPs y los distintos algoritmos aplicables. Estos se presentan de una forma didáctica, con el objetivo de usar la documentación como material académico.
+\item Objetivo 3: Se realizó un análisis profundo de la herramienta IsaacLab. Se presentó la base de la herramienta, abarcando su estructura, las distintas formas de programación, las estructuras de datos y los principales procesos de entrenamiento y evaluación.
+\item Objetivo 4: Se realizaron dos análisis sobre ejercicios prácticos, abarcando ambas formas de programación e implementando mejoras en ambos.
+\item Objetivo 5: Se trabajó dentro del proyecto MetaTool y se presento su misión y objetivos.
+\item Objetivo 6: Se presentaron algunos de los ejercicios prácticos trabajados y las correcciones implementadas.
+\item Objetivo 7: Se estudió el problema Sim2Real y se presentaron distintas soluciones, implementando finalmente la aleatorización del dominio.
+\item Objetivo 8: Se diseño un código para la implementación de políticas, obteniendo resultados aptos en simulación y limitados en la realidad.
+\end{itemize}
+
+Teniendo en cuenta estos objetivos secundarios, se presenta una evaluación de los objetivos principales. Por un lado, la creación de una base teórica a quedado cubierta en este trabajo, mediante los objetivos 1, 2, 3 y 4. El resultado en su conjunto es bueno, habiendo construido una base teórica sólida para futuros trabajos. Por otro lado, la implicación dentro del proyecto MetaTool ha sido limitada, debido a su alta complejidad. Sin embargo, tomando los objetivos 5, 6, 7 y 8, se ha dado cierta involucración que, aunque no haya tenido un efecto en el proyecto general, ha sido beneficiosa para los conocimientos y contenidos aportados. Por tanto, se han cumplido los objetivos con éxitos, asumiendo ciertas limitaciones en la segunda parte del trabajo.
+
+\chapter{Aportaciones del trabajo}
+
+Añadido a los objetivos de este trabajo, este trabajo contiene más aportaciones dignas de resaltar y que complementan estos objetivos. En esta sección se presentarán, dividiendo de nuevo el trabajo en dos partes marcadas: teoría (objetivos 1 a 4) y práctica (objetivos 5 a 8).
+
+La parte teórica, por un lado, no es únicamente una presentación de conceptos. El capítulo 3 sigue una progresión propia de este trabajo. Esta permite seguir los conceptos progresivamente y manteniendo una cohesión. Si bien está estructura está influenciada por los principales materiales utilizados \cite{silver_lectures_nodate} \cite{sutton_reinforcement_2020}, no responde a ninguna de estos dos, sino se vuelve una combinación de ambos y de la propia experiencia de aprendizaje. Además, la mayor parte de este material se encuentra en lengua inglesa, por lo que la traducción al español se vuelve valiosa. El capítulo 4, por otro lado, realiza una labor parecida, agrupando toda la información contenida dentro de la documentación oficial \cite{isaaclab_doc}. La información contenida en este capítulo se reparte en distintos apartados. En este capítulo se agrupa toda esta información, teniendo en cuenta una aplicación didáctica, al igual que en el apartado 3. Por último, los análisis profundos de cada ejercicio práctico son completamente propios de este trabajo, derivados de multiples horas de análisis e investigación dentro de las APIs de la herramienta \cite{isaaclab_api}. Estos análisis permiten facilitar la compresión del conjunto global de entrenamiento, que supone la gran parte del trabajo realizado y permite acortar el tiempo dedicado a esto en futuros proyectos.
+
+La parte práctica, por otro lado, se encuentra más limitada, pero no carece en absoluto de aportaciones. La principal de estas son los distintos módulos implementados para la implementación de políticas. Los módulos existentes actualmente son extremadamente limitados a aplicaciones concretas. El módulo implementado permite una gran flexibilidad a la hora de diseñar entornos, adaptándose a la modularidad de IsaacLab. A su vez, los resultados obtenidos en la práctica, a pesar de ser deficientes, son una de las grandes aportaciones en este trabajo. En la mayoría de artículos expuestos se indican únicamente casos de éxito. Siendo el primer trabajo referente a esta disciplina dentro de la universidad estos resultados sirven de referencia para futuras aplicaciones.
+
+\section{Limitaciones}
+
+Pese a las aportaciones expuestas, se han encontrado ciertas limitaciones. Por un lado, en la parte teórica, la principal limitación de este trabajo es en el construcción de algoritmos propios. Esta limitación no es derivada del trabajo sino del enfoque. La construcción de algoritmos parte de la base teórica expuesta, pero requiere de una mayor investigación acerca de redes neuronales y algoritmos modernos de aprendizaje profundo. En este trabajo se han expuesto las bases de estos, pero realizar un estudio extenso requiere de sentido gracias a las bibliotecas de algoritmos contenidas dentro IsaacLab. La limitación en la parte práctica, sin embargo, es mayor. Los problemas encontrados en el control del robot limitaron la implementación del ejercicio \emph{Reach}, así como la implementación de ejercicios más complicados dentro de MetaTool, implementados sobre el \emph{Robohabilis}.
+
+Las limitaciones del trabajo no suponen un fracaso para la creación de la base teórica realizada. Esta base permite planear futuros proyectos, que expandan sobre esta base.
+
+\section{Trabajos futuros}
+
+La base expuesta y las limitaciones encontradas abren camino para futuros trabajos que expandan sobre el desarrollo de este. En esta sección se proponen posibles enfoques para nuevos trabajos:
+\begin{itemize}
+    \item \textbf{Implementación de políticas en UR3}. La disponibilidad de estos robots en el laboratorio de la ETSIDI permiten realizar gran número de pruebas en ellos. Sin embargo, los distintos problemas encontrados en el control de estos mediante políticas ha sido el principal limitador de este trabajo. Se propone un trabajo en el que se utilicen directamente las políticas generadas en este u otro trabajo pare enfocarse en su implementación; y no en la generación como en este caso.
+    \item \textbf{Generación de políticas con otras herramientas}. IsaacLab no es la única herramienta de aprendizaje automático, existen otras aplicaciones y herramientas que disponen de estas funcionalidades. IsaacLab es la más potente, pero su uso de las tarjetas gráficas es muy limitante. La base teórica del aprendizaje por refuerzo, el módulo de implementación de políticas y las ejemplificaciones en IsaacLab son extrapolables a cualquier caso de aprendizaje.
+    \item \textbf{Aplicación de políticas en robots}. Este trabajo, combinado a los anteriores expuestos, permitirían tener la base suficiente para llevar a cabo proyectos enfocados únicamente a la aplicación de las políticas en robos reales. Este tipo de proyectos debería dividirse en dos trabajos separados. Por un lado, la generación de los elementos a simular y sus políticas; y por el otro, la implementación Sim2Real en el robot real.
+    \item \textbf{Diseño de nuevos algoritmos}. Este tipo de proyectos divergen del terreno de la escuela ETSIDI, estando más relacionados con programación que con implementaciones ingenieriles. No obstante, la base teórica presentada supone un gran punto de inicio para cualquier trabajo de estas características.
+\end{itemize}
+
+El objetivo de próximos trabajos debería ser la consolidación de resultados reales, algo en lo que en este trabajo no se ha podido alcanzar. Para ello se realiza una recomendación: utilizar este trabajo como base teórica y enfocar los esfuerzos en un único problema. Este trabajo, debido a su amplitud teórica, se enfoca en múltiples problemas en un solo trabajo. Esto requiere gran cantidad de tiempo, pues cada ejemplo práctico o ejercicio práctico tienen una serie de problemas individuales. Esta multitud de problemas individuales consumen gran cantidad de horas, por lo que es prioritario consolidar los resultados una vez superados.

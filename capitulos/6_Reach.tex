@@ -1,4 +1,5 @@
 \chapter{Reach}
+\label{ch:reach}
 
 En este capítulo se va estudiar un nuevo ejercicio de aprendizaje por refuerzo. Para este caso, se estudiará la construcción de entornos por manejadores. Debido a la constitución del código en esta forma de trabajar, el análisis será menos profundo. Esta forma permite estructurar el código de manera más superficial, organizándose en dos elementos: manejadores y términos; donde el entorno tiene un número de manejadores y estos tienen un número de términos. 
 
@@ -238,7 +239,7 @@ Seguidamente se indica la referencia del robot para las recompensas. En el apart
 
 Además de esta clase de configuración, específica para el entrenamiento, se define otra para su posterior evaluación. Esta hereda de la clase anterior, sobre la cual se hacen dos únicas modificaciones: el numero de entornos y su espaciado, y la inhabilitación del ruido en las observaciones.
 
-Teniendo ambas configuraciones definidas y la configuración del agente previamente definida, ahora en \verb|source/ARMetaToolPG/ARMetaToolPG/tasks/manager_based/reach/| \verb|config/ur_3/agents/rsl_rl_ppo_cfg.py|, se puede registrar, por separado, las tareas de entrenamiento y evaluación. Este registro se da en el archivo: \verb|source/ARMetaToolPG/ARMetaToolPG/tasks/manager_based/reach/|\verb|config/ur_3/__init__.py|. Para ambos casos, se vuelve a realizar el registro como en el capítulo anterior, esta vez utilizando como punto de entrada para la clase general \clase{ManagerBasedRLEnv}.
+Teniendo ambas configuraciones definidas y la configuración del agente previamente definida, ahora en \verb|source/ARMetaToolPG/ARMetaToolPG/tasks/manager_based/reach/| \verb|config/ur_3/agents/rsl_rl_ppo_cfg.py|, se puede registrar, por separado, las tareas de entrenamiento y evaluación. Este registro se da en el archivo: \verb|source/ARMetaToolPG/ARMe|\verb|taToolPG/tasks/manager_based/reach/config/ur_3/__init__.py|. Para ambos casos, se vuelve a realizar el registro como en el capítulo anterior, esta vez utilizando como punto de entrada para la clase general \clase{ManagerBasedRLEnv}.
 
 Teniendo ambas tareas registradas, se puede pasar a realizar el entrenamiento del agente. Esto se verá en el próximo apartado.
 
@@ -253,9 +254,68 @@ De una misma manera que en el capítulo anterior, se va realizar el aprendizaje 
     \caption{Prueba para el entrenamiento del robot araña}
 \end{figure}
 
-Para este caso se utilizarán 512 entornos. Es interesante notar que al utilizar la forma de manejadores, al descomponer las recompensas en términos individuales, el entrenamiento entrega la información de las recompensas desglosada; a diferencia de la forma directa, donde solo se obtenía el valor de la recompensa global media. Esto nos permite tener más información y poder detectar fácilmente posibles fallos en el entrenamiento. Una vez terminado el entrenamiento (figura \ref{fig:reachenthls}), se observa que la recompensa es negativa. Esto, sin embargo, no es relevante, pues lo importante es que la recompensa se maximize, no que esta sea alta. En este caso, al penalizar en la mayoría de recompensas, lo óptimo es que la recompensa sea próxima a 0, lo cual parece cumplirse. El siguiente paso, será evaluar con \verb|play.py|, de modo que podamos estudiar si cumple los objetivos y si esta recompensa puede minimizarse de alguna forma.
+Para este caso se utilizarán 512 entornos. Es interesante notar que al utilizar la forma de manejadores, al descomponer las recompensas en términos individuales, el entrenamiento entrega la información de las recompensas desglosada; a diferencia de la forma directa, donde solo se obtenía el valor de la recompensa global media. Esto nos permite tener más información y poder detectar fácilmente posibles fallos en el entrenamiento. Una vez terminado el entrenamiento, se observa que la recompensa es negativa. Esto, sin embargo, no es relevante, pues lo importante es que la recompensa se maximize, no que esta sea alta. En este caso, al penalizar en la mayoría de recompensas, lo óptimo es que la recompensa sea próxima a 0, lo cual parece cumplirse. El siguiente paso, será evaluar con \verb|play.py|, de modo que podamos estudiar si cumple los objetivos y si esta recompensa puede minimizarse de alguna forma.
 
-Al evaluar la política de esta manera se observan un problema principal. Por un lado, existen posiciones que requieren que el robot contacte consigo mismo o con el suelo. Esto es un problema, pues puede inhabilitar el movimiento o dañar el robot. Como se espera poder implementar este robot en el robot real, en el próximo apartado se corregirá y mejorará el ejercicio para hacerlo apto para su implementación final.
+Al evaluar la política de esta manera se observan un problema principal. Por un lado, existen posiciones que requieren que el robot contacte consigo mismo o con el suelo. Esto es un problema, pues puede inhabilitar el movimiento o dañar el robot. Como se espera poder implementar esta política en el robot real, en el próximo apartado se corregirá y mejorará el ejercicio para hacerlo apto para su implementación final.
 
 \section{Mejoras y correcciones}
-CORRECCIONES PENDIENTES (PENALIZACIÓN POR TOCAR MESA, CAMBIO DE RANGOS)
+La implementación de este ejercicio se realizará en un robot UR3, con un gripper incluido. Por tanto, es importante obtener un modelo fiel a este robot; es decir, se debe tener en cuenta el gripper en el entrenamiento. Para ello, se ha utilizado un fichero .usd que contiene este gripper. En el proyecto general de este trabajo \api{ARMetaToolPG}, se puede encontrar este archivo en la carpeta \verb|source/ARMetaToolPG/data/ur3e|. No obstante, para este ejercicio de alcance, no se tiene en cuenta las acciones del gripper; no se estudia agarre. Por ello, para facilitar el ejercicio y que la posición de la pinza no afecte a la política, se elimina los accionamientos de cierre. De este modo, se obtiene un modelo que tiene en cuenta el gripper, sin que este afecte en las observaciones al posicionamiento. Para este modelo se crea una nueva configuración, mostrada en el siguiente código \ref{lst:UR3np}:
+\begin{lstlisting}[style=mypython, caption={Definición del modelo para el UR3 con gripper, \atributo{UR3\_CFG\_NP}},  label={lst:UR3np}]
+UR3_CFG_NP = ArticulationCfg(
+    spawn=sim_utils.UsdFileCfg(
+        usd_path=f"{ARMT_ASSETS_DATA_DIR}/ur3e/ur3e_gripper_np.usd",
+        rigid_props=sim_utils.RigidBodyPropertiesCfg(
+            disable_gravity=False,
+            max_depenetration_velocity=5.0,
+        ),
+        articulation_props=sim_utils.ArticulationRootPropertiesCfg(
+            enabled_self_collisions=True,
+        )
+    ),
+    init_state=ArticulationCfg.InitialStateCfg(
+        joint_pos={
+            "shoulder_pan_joint": -1.57,
+            "shoulder_lift_joint": -1.744,
+            "elbow_joint": 1.57,
+            "wrist_1_joint": (4.71-6.283),
+            "wrist_2_joint": (4.71-6.283),
+            "wrist_3_joint": (4.36-6.283),
+        },
+        pos = [0.0, 0.0, 0.0],
+        rot = [0.70710678, 0, 0, -0.70710678]
+    ),
+    actuators={
+        "arm": ImplicitActuatorCfg(
+            joint_names_expr=[".*"],
+            velocity_limit=100.0,
+            effort_limit=87.0,
+            stiffness=800.0,
+            damping=40.0,
+        ),
+    },
+)
+\end{lstlisting}
+An su vez, en esta nueva configuración, se ajusta la rotación y la posición inicial del robot para que coincida con la del robot de pruebas.
+
+Por otro lado, también con el objetivo de realizar pruebas, se va ajustar los rangos de coordenadas. Por un lado, se va a definir un nuevo rango de operación, teniendo en cuenta el espacio donde se va a trabajar. Por otro lado, para analizar el ajuste de la orientación, se va a buscar mantener el gripper paralelo al suelo, de un mismo modo que el torso de la araña. Para ello, se van a mantener la rotación en \emph{roll} y \emph{pitch} constante, para variar únicamente la rotación en \emph{yaw} (código \ref{lst:ranges}).
+\begin{lstlisting}[style=mypython, caption={Cambio en los rangos de entrenamiento, dentro de la clase \clase{UR3ReachEnvCfg}},  label={lst:ranges}]
+        self.commands.ee_pose.ranges.pos_y = (-0.40, -0.20)
+        self.commands.ee_pose.ranges.pos_z = (0.15, 0.35)
+        self.commands.ee_pose.ranges.pos_x = (-0.20, 0.30)
+        self.commands.ee_pose.ranges.roll = (math.pi, math.pi)
+        self.commands.ee_pose.ranges.pitch = (0, 0)
+        self.commands.ee_pose.ranges.yaw = (-math.pi/2, math.pi/2)
+\end{lstlisting}
+También se va cambiar la referencia del marco. Para ello, se utilizará el miembro virtual del modelo situado en el centro del gripper, \atributo{gripper\_center} (código \ref{lst:bodyname}):
+\begin{lstlisting}[style=mypython, caption={Cambio en las referencias del entrenamiento, dentro de la clase \clase{UR3ReachEnvCfg}},  label={lst:bodyname}]
+        self.rewards.end_effector_position_tracking.params["asset_cfg"].body_names = ["gripper_center"]
+        self.rewards.end_effector_position_tracking_fine_grained.params["asset_cfg"].body_names = ["gripper_center"]
+        self.rewards.end_effector_orientation_tracking.params["asset_cfg"].body_names = ["gripper_center"]
+        self.commands.ee_pose.body_name = "gripper_center"
+\end{lstlisting}
+
+Por último, se incluye una nueva penalización, en el caso de que se entre contacto con la mesa. Esta penalización se incluye después de haberse trabajado en el proyecto MetaTool, siendo una de las recompensas más utilizadas durante este trabajo. Esta última penalización, \atributo{touch\_desk}, se verá en detalle en el próximo capítulo. A su vez, la evaluación de estas correcciones se dará en el último capítulo, junto al estudio del problema \emph{sim2real}.
+
+\section{Conclusiones: Directo contra Manejadores}
+
+Una vez analizadas ambas formas de programar posemos evaluar ambas conjuntamente. Como se ha comentado en el apartado anterior, la forma directa permite un mayor control del entorno, definiendo explícitamente la implementaciones de las acciones, la recogida de observaciones y la generación de recompensas. Al realizar el ejercicio por manejadores, esta definición viene predefinida, recayendo sobre el desarrollador únicamente la definición de las propias observaciones, recompensas y acciones. En tareas sencillas, o en casos donde el peso del entrenamiento no recaiga principalmente en estos elementos, sino en como se apliquen, el modo directo es el más útil. Sin embargo, para casos más complejos, con múltiples recompensas y observaciones, la manera más eficiente es por manejadores. Los ejemplos del proyecto MetaTool, que se verán en el próximo capítulo, utilizan esta segunda forma.
