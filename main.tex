@@ -16,7 +16,8 @@
 \usepackage{lmodern} % Fuente Latin Moderna
 \usepackage{cite} % Paquete para citas
 \usepackage{placeins} % Para evitar figuras en medio de los códigos
-
+\usepackage{hyperref} %Para urls
+\usepackage{rotating} %Rotar figura en Anexo
 
 \DeclareMathOperator*{\argmax}{arg\,max} % Declaración de un operador matemático.
 % Configuración de márgenes
@@ -70,8 +71,6 @@
 \setlength{\parindent}{1.25cm}
 \setlength{\parskip}{0.2cm}
 
-\includeonly{capitulos/1_Introduccion}
-
 % Inicio del documento
 \begin{document}
 
@@ -87,9 +86,11 @@
 \include{capitulos/7_MetaTool}
 \include{capitulos/8_sim2real}
 \include{capitulos/9_conclusiones}
-
 \bibliographystyle{unsrt}
 \bibliography{bibliografia/citas}
+\appendix
+\clearpage
+\include{capitulos/Anexos}
 
 \end{document}
 

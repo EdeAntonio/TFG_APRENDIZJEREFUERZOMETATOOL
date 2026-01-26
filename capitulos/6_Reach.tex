@@ -1,26 +1,26 @@
 \chapter{Reach}
 \label{ch:reach}
 
-En este capítulo se va estudiar un nuevo ejercicio de aprendizaje por refuerzo. Para este caso, se estudiará la construcción de entornos por manejadores. Debido a la constitución del código en esta forma de trabajar, el análisis será menos profundo. Esta forma permite estructurar el código de manera más superficial, organizándose en dos elementos: manejadores y términos; donde el entorno tiene un número de manejadores y estos tienen un número de términos. 
+En este capítulo se va estudiar un nuevo ejercicio de aprendizaje por refuerzo. Para este caso, se estudiará la construcción de entornos por manejadores. Debido a la constitución del código en esta forma de trabajar, el análisis será menos profundo. Esta forma permite estructurar el código de manera más superficial, organizándose en dos elementos: manejadores y términos.
 
-Para el estudió se desarrollará y analizará el diagrama de clases. Dentro de este diagrama de clases se analizará su pieza central, \clase{UR3EnvCfg}, la cual definirá la estructura de manejadores. Después se estudiarán, al igual que en el capítulo anterior, el registro, entrenamiento y evaluación del ejercicio de entrenamiento. Por último, se implementarán y propondrán algunas mejoras para este caso. Antes de todo esto, se va a presentar el caso de estudio.
+Para el estudió se desarrolla y analiza el diagrama de clases. Dentro de este diagrama de clases se analiza su pieza central, \clase{UR3EnvCfg}, la cual define la estructura de manejadores. Después se estudia, al igual que en el capítulo anterior, el registro, entrenamiento y evaluación del ejercicio de entrenamiento. Por último, se proponen e implementan algunas mejoras para este caso. Antes de todo esto, se va a presentar el caso de estudio.
 
 \section{Descripción del caso práctico}
-Para este segundo caso de estudió, se pasa al ámbito de la manipulación. Se va a realizar un ejercicio \emph{reach}, un paso previo a cualquier problema de manipulación. En él, se buscará llevar la última articulación de un robot a una posición y orientación concreta. El robot elegido es el UR3, de \emph{Universal Robots} \cite{robot_ur3e}. Se ha escogido este robot por dos motivos: la disponibilidad en el laboratorio de este robot y el uso de este robot en el proyecto MetaTool. El caso, por otro lado, ha sido escogido para introducir la forma de programación por manejadores y rotar hacia el enfoque de trabajo de MetaTool.
+Para este segundo caso de estudio se transfiere el enfoque al ámbito de la manipulación. Se realiza un ejercicio \emph{reach}, un paso previo a cualquier problema de manipulación. En él, se requiere llevar el efector final del robot a una posición y orientación concreta. El robot elegido es el UR3, de \emph{Universal Robots} \cite{robot_ur3e}. Se ha escogido este robot por dos motivos: su disponibilidad en el laboratorio de la universidad y el uso de este robot en el proyecto MetaTool. El caso, por otro lado, ha sido escogido para introducir la forma de programación por manejadores y rotar hacia el enfoque de trabajo de MetaTool. No obstante, es un caso seguro de implementar, que a su vez permite la recolección de datos de posición y orientación objetivos. Por ello, también se selecciona para realizar la implementación final.
 
-El código no es propio de este proyecto. En la mayoría de casos de aprendizaje no es necesario implementar desde cero el código. Gracias al gran volumen de ejemplos, lo común es partir de un ejemplo y realizar modificaciones al código. Esta forma de trabajar es la que se ha implementado para realizar este caso, partiendo del código de IsaacLab contenido en \verb|source/isaaclab_tasks/isaaclab_tasks/manager_based/manipulation/reach/reac| \verb|h_env_cfg.py| dentro de la herramienta IsaacLab. Dentro del análisis se indicarán los fragmentos modificados y se analizará el código al completo.
+Este código parte de una base, un ejemplo de las mismas características dentro de la herramienta IsaacLab. Gracias al gran volumen de ejemplos, lo común es partir de uno de estos ejemplos y realizar modificaciones al código. Esta forma de trabajar es la que se ha implementado, partiendo del código de IsaacLab contenido en \verb|source/isaaclab_tasks/isaaclab_tasks/manager_based/manipulation/reach/reac| \verb|h_env_cfg.py| dentro de la herramienta IsaacLab.
 
-A continuación, se va dar comienzo al estudio del código, analizando el diagrama de clases desarrollado.
+A continuación, se presenta el estudio del código, comenzando por el análisis del diagrama de clases desarrollado.
 
 \section{Diagrama de clases}
 
-En la figura \ref{UMLreach} se muestra el diagrama de clases preparado para este ejemplo. A primera vista, se puede observar que los elementos del diagram orbitan alrededor de la clase \clase{ReachEnvCfg}. Esta clase hereda de \clase{ManagerBasedCfg} y sirve de base para las del entorno específico \clase{UR3ReachEnvCfg} y \clase{UR3ReachEnvCfg\_PLAY}. De una misma manera que el ejemplo anterior, existe una clase para una tarea común, en este caso del \emph{reach} sería la clase \clase{ReachEnvCfg}.
+En la figura \ref{UMLreach} se muestra el diagrama de clases preparado para este ejemplo. A primera vista, se puede observar que los elementos del diagrama orbitan alrededor de la clase \clase{ReachEnvCfg}. Esta clase hereda de \clase{ManagerBasedCfg} y sirve de base para las clases del entorno específico, \clase{UR3ReachEnvCfg} y \clase{UR3ReachEnvCfg\_PLAY}. De manera análoga al ejercicio anterior, existe una clase para una tarea común, \clase{ReachEnvCfg}.
 
-La clase \clase{ReachEnvCfg} definiría la tarea general a implementar. Para cada aspecto general tendría un manejador distinto, los cuales se abalizarán detenidamente en futuros apartados. Como se viene comentando, cada uno de estos manejadores tiene como atributos distintos términos, que resumen cada una de las distintas partes de ese aspecto. Por ejemplo, el manejador \clase{RewardsCfg} esta constituido por una serie de términos \clase{RewTerm}.
+La clase \clase{ReachEnvCfg} define la tarea general a implementar. Para cada aspecto general tiene un manejador distinto, los cuales se analizan detenidamente en futuros apartados. Cada uno de estos manejadores tiene como atributos distintos términos, que conforman la configuración de cada elemento. Por ejemplo, el manejador \clase{RewardsCfg} está constituido por una serie de términos \clase{RewTerm}.
 
-A partir de esta clase heredan \clase{UR3ReachEnvCfg} y \clase{UR3ReachEnvCfg\_PLAY}; la primera de estas pensada para el entrenamiento y la segunda para la manipulación. Cabe notar que no se hereda a partir de la clase principal \clase{ManagerBasedRLEnv}, sino únicamente de las configuraciones. Esto ocurre ya que, a diferencia de la manera directa, en esta forma de programar se definen únicamente las piezas y elementos de las interacciones, los procesos propios de esta vienen ya definidos en la clase principal base.
+A partir de esta clase heredan \clase{UR3ReachEnvCfg} y \clase{UR3ReachEnvCfg\_PLAY}; la primera de estas pensada para el entrenamiento y la segunda para la evaluación. Cabe notar que no se hereda a partir de la clase principal \clase{ManagerBasedRLEnv}, sino únicamente de las configuraciones. Esto ocurre ya que, a diferencia de la manera directa, en esta forma de programar se definen únicamente las piezas y elementos de las interacciones, los procesos propios de esta vienen ya definidos en la clase principal base.
 
-En el siguiente apartado, se van a analizar cada uno de los manejadores individualmente, analizando el código utilizado en cada uno de ellos.
+En el siguiente apartado, se analiza cada uno de los manejadores individualmente, inspeccionando el código utilizado para cada uno de ellos.
 
 \begin{landscape}
 \begin{figure}[ht]
@@ -33,25 +33,23 @@ En el siguiente apartado, se van a analizar cada uno de los manejadores individu
 
 \section{Manejadores}
 
-En este apartado se van a estudiar cada uno de los manejadores detenidamente, estudiando su función y definición en su código. Todos los manejadores y clases se definen en el archivo \verb|source/isaaclab_tasks/isaaclab_tasks/manager_based/manipulation/re| \verb|ach/reach_env_cfg.py|
+En este apartado se estudia cada uno de los manejadores detenidamente. Todos los manejadores y clases se definen en el archivo \verb|source/isaaclab_tasks/isaaclab_tasks/manager_based/manipulation/re| \verb|ach/reach_env_cfg.py|
 
 \paragraph{ReachSceneCfg}
 
-La primera clase definida dentro del código no es un manejador como tal, sino la clase con la que se definen los elementos de la escena. No obstante, pese a no encontrarse dentro de los manejadores, se trata dentro del código como uno, definiendo los distintos elementos que lo componen y dejando su creación final a la clase base. Al estar tratando con la clase de configuración de la tarea base, no se define ningún elemento específico. Todos ellos se definen a partir de la clase \clase{AssetBaseCfg}, la clase básica para la definición de primitivos \cite{isaaclab_api}. 
+La primera clase definida dentro del código no es un manejador como tal, sino la clase con la que se definen los elementos de la escena. No obstante, pese a no encontrarse entre los manejadores, se trata dentro del código como uno, definiendo los distintos elementos que lo componen y dejando su creación final a la clase base. Al estar tratando con la clase de configuración de la tarea base, no se define ningún elemento específico. Todos ellos se definen a partir de la clase \clase{AssetBaseCfg}, la clase básica para la definición de \emph{primitivos} \cite{isaaclab_api}. 
 
 El código utilizado para la definición de esta escena es el siguiente (código \ref{lst:scnrea}):
 \begin{lstlisting}[style=mypython, caption={Definición de la escena mediante la clase \clase{ReachSceneCfg}},  label={lst:scnrea}]
 @configclass
 class ReachSceneCfg(InteractiveSceneCfg):
-    """Configuration for the scene with a robotic arm."""
-
-    # world
+    # plano
     ground = AssetBaseCfg(
         prim_path="/World/ground",
         spawn=sim_utils.GroundPlaneCfg(),
         init_state=AssetBaseCfg.InitialStateCfg(pos=(0.0, 0.0, -1.05)),
     )
-
+    # mesa
     table = AssetBaseCfg(
         prim_path="{ENV_REGEX_NS}/Table",
         spawn=sim_utils.UsdFileCfg(
@@ -59,21 +57,19 @@ class ReachSceneCfg(InteractiveSceneCfg):
         ),
         init_state=AssetBaseCfg.InitialStateCfg(pos=(0.55, 0.0, 0.0), rot=(0.70711, 0.0, 0.0, 0.70711)),
     )
-
     # robots
     robot: ArticulationCfg = MISSING
-
-    # lights
+    # luces
     light = AssetBaseCfg(
         prim_path="/World/light",
         spawn=sim_utils.DomeLightCfg(color=(0.75, 0.75, 0.75), intensity=2500.0),
     )
 \end{lstlisting}
-Se declaran 4 elementos a crear en la escena. El primero de ellos es el plano general, almacenado en la variable \atributo{ground}. Este plano se define utilizando el plano por defecto, situándolo a aproximadamente un metro del origen. Después, se define la mesa a utilizar. Para ello, se utiliza una mesa propia de IsaacLab y se sitúa (referido a su centro de coordenadas) aproximadamente medio metro del origen de la escena. Seguidamente, se declara el robot. Al ser este un elemento específico de la aplicación se utiliza la constante \atributo{MISSING}, para poder reemplazarlo más adelante. Por último, se define el tipo de iluminación. Cada uno de estos elementos conforman un primitivo, los cuales se almacenan dentro de cada entorno (con la constante \atributo{ENV\_REGEX\_NS}) o en el mundo (con el directorio \verb|/World/|). De esta manera queda estructurada la escena con sus elementos para que la clase \clase{ManagerBasedRLEnv} pueda crearla directamente.
+Se declaran 4 elementos a crear en la escena. El primero de ellos es el plano general, almacenado en la variable \atributo{ground}. Este plano se define utilizando el plano por defecto, situándolo aproximadamente a un metro del origen. Después, se define la mesa de la escena, utilizando una mesa propia de IsaacLab y se sitúa aproximadamente a medio metro del origen de la escena. Seguidamente, se declara el robot. Al ser este un elemento específico de la aplicación se utiliza la constante \atributo{MISSING}, para poder reemplazarlo más adelante. Por último, se define el tipo de iluminación. Estos elementos se almacenan dentro de cada entorno como \emph{primitivos} (con la constante \atributo{ENV\_REGEX\_NS}) o en el mundo (con el directorio \verb|/World/|). De esta manera, la escena queda estructurada a través de sus distintos elementos para que la clase \clase{ManagerBasedRLEnv} pueda crearla directamente.
 
 \paragraph{CommandsCfg}
 
-La siguiente clase definida trata, esta vez sí, del primer manejador, \clase{CommandsCfg}. Este manejador se encarga de generar objetivos para el ejercicio de entrenamiento. En el caso en cuestión, el objetivo es poder llevar la última articulación a una posición y orientación concreta. Para poder llevarla a distintos puntos, se debe entrenar para un rango de puntos; si se entrenase para un punto concreto, solo podría llegar a este. 
+La siguiente clase definida es el primer manejador definido, \clase{CommandsCfg}. Este manejador se encarga de generar objetivos para el ejercicio de entrenamiento. En el caso en cuestión, el objetivo es llevar el efector final a una posición y orientación concreta. Para poder llevar a distintos puntos el efector se debe entrenar para un rango de puntos; si se entrenase para un punto concreto, solo podría llegar a este. 
 
 Con esta clase se pretende generar una serie de puntos objetivo para entrenar el movimiento hacia estos. El código sería el siguiente (código \ref{lst:cmdrea}):
 \begin{lstlisting}[style=mypython, caption={Definición de los objetivos de entrenamiento mediante la clase \clase{CommandsCfg}},  label={lst:cmdrea}]
@@ -96,28 +92,24 @@ class CommandsCfg:
         ),
     )
 \end{lstlisting}
-Dentro de la clase, se define un única variable donde se almacenarán las posiciones objetivo. Todas las posiciones van referenciadas al origen de coordenadas del entorno. Estas comandas deben ir referidas ademas a la articulación que debe adaptarse a ellas, indicando el robot en \atributo{asset\_name} y la articulación o enlace al que va referenciado en \atributo{body\_name}. Además de esto, se indica el intervalo de tiempo en el que se actualiza esta posición, en este caso 4 segundos, y se indica que el punto sea visible en la simulación. Por último, mediante la variable \atributo{ranges}, se indica el rango de posiciones y rotaciones a generar.
+Dentro de la clase, se define una única variable donde se almacenarán las posiciones objetivo. Todas las posiciones van referenciadas al origen de coordenadas del entorno. Estos puntos deben ir referidos además al efector final, indicando el robot en \atributo{asset\_name} y la articulación o enlace al que va referenciado, \atributo{body\_name}. Se indica también el intervalo de tiempo en el que se actualiza esta posición, en este caso 4 segundos, y si el punto es visible en la simulación. Por último, mediante la variable \atributo{ranges}, se define el rango de posiciones y rotaciones a generar.
 
 \paragraph{ActionCfg}
 
-Una vez definidos los objetivos del aprendizaje, se definen las acciones a través de su manejador \clase{ActionsCfg}. Este manejador define con cada termino los distintos bloques de acciones; es decir, define el movimiento de las articulaciones. En este caso, (código \ref{lst:accrea}), simplemente se definen los dos tipos de movimientos que tiene cualquier brazo robótico, el movimiento de las articulaciones y el del \emph{gripper}.
+Una vez definidos los objetivos del aprendizaje, se definen las acciones a través de su manejador \clase{ActionsCfg}. Este manejador define mediante cada término los distintos bloques de acciones. En este caso, (código \ref{lst:accrea}), se definen dos tipos de movimientos que tiene cualquier brazo robótico, el movimiento del brazo y el del \emph{gripper}.
 \begin{lstlisting}[style=mypython, caption={Declaración de las acciones dentro de su manejador, \clase{ActionsCfg}},  label={lst:accrea}]
 class ActionsCfg:
-    """Action specifications for the MDP."""
     arm_action: ActionTerm = MISSING
     gripper_action: ActionTerm | None = None
 \end{lstlisting}
 
-\paragraph{ObservationCfg}
+\paragraph{ObservationsCfg}
 
-El siguiente manejador a tratar es el que define las observaciones. Dentro de este manejador se definen las distintas observaciones que se realizan sobre el entorno y se entregan al agente. Esta información viene estructurada dentro de una clase propia que hereda de \clase{ObsGroup}. Esto es necesario para que la clase principal, \clase{ManagerBasedRLEnv}, pueda concatenar las observaciones manteniendo su orden. Es necesario que se mantenga el orden, pues al implementar la red neuronal se debe construir un vector respetando este. El código utilizado para definir este manejador es el siguiente (código \ref{lst:obsrea}):
+El siguiente manejador a tratar es el que define las observaciones. Dentro de este manejador se definen las distintas observaciones que se realizan sobre el entorno y se entregan al agente. Esta información viene estructurada dentro de una clase propia que hereda de \clase{ObsGroup}. Esto es necesario para que la clase principal, \clase{ManagerBasedRLEnv}, pueda concatenar las observaciones manteniendo su orden. Este orden cobra relevancia al implementar la red neuronal, pues se debe procesar un vector de observaciones con la misma forma. El código utilizado para definir este manejador es el siguiente (código \ref{lst:obsrea}):
 \begin{lstlisting}[style=mypython, caption={Definición de las observaciones dentro de su manejador, \clase{ObservationCfg}},  label={lst:obsrea}]
 class ObservationsCfg:
-    """Observation specifications for the MDP."""
     @configclass
     class PolicyCfg(ObsGroup):
-        """Observations for policy group."""
-
         # observation terms (order preserved)
         joint_pos = ObsTerm(func=mdp.joint_pos_rel, noise=Unoise(n_min=-0.01, n_max=0.01))
         joint_vel = ObsTerm(func=mdp.joint_vel_rel, noise=Unoise(n_min=-0.01, n_max=0.01))
@@ -142,7 +134,7 @@ Aparte de definir estas 4 observaciones, dentro de la clase \clase{PolicyCfg} se
 
 \paragraph{EventCfg}
 
-Otro de los manejadores que se deben definir es el de eventos. Este manejador se encarga de realizar procesos en los momentos indicados. Para este caso, por ejemplo, se define un único evento que ocurre al reiniciar el entorno: el reinicio de la posición de las articulaciones. Este reinicio además es escalado, lo que significa que la posición inicial variará dentro del rango estipulado (código \ref{lst:evtrea}).
+Otro de los manejadores que se debe definir es el de eventos. Este manejador se encarga de realizar procesos en momentos puntuales del proceso. Para este caso se define un único evento que ocurre al reiniciar el entorno: el reinicio de la posición de las articulaciones. Este reinicio además es escalado, lo que significa que la posición inicial variará dentro del rango estipulado (código \ref{lst:evtrea}).
 \begin{lstlisting}[style=mypython, caption={Definición de los eventos dentro de su manejador, \clase{EventsCfg}},  label={lst:evtrea}]
 class EventCfg:
     """Configuration for events."""

@@ -22,7 +22,7 @@ La estructura del aprendizaje por refuerzo define las interacciones entre un age
 \begin{figure}[!ht]
     \centering
     \includegraphics[width=0.8\textwidth]{imagenes/StructRL.pdf}
-    \caption{Interacción agente–entorno.}
+    \caption{Diagrama de interacción agente-entorno.}
     \label{fig:agente_entorno}
 \end{figure}
 
@@ -50,16 +50,16 @@ Existen otros tipos de procesos que mantienen esta propiedad y describen transic
 
 Los MDP tienen asociada una formulación matemática. Para facilitar el estudio de esta, se muestra un diagrama en la figura \ref{fig:mdp_struct}. Este diagrama representa parte de un MDP de estados discretos y define la transición de un estado a otro. Un MDP completo conecta varios de estos estados y transiciones, hasta formar cadenas complejas. Esto se puede ver en la figura \ref{fig:mdp_ejemplo}, en el siguiente apartado.
 
-\begin{figure}[h!]
+\begin{figure}[!ht]
     \centering
     \includegraphics[width=0.8\textwidth]{imagenes/MDPStruct.pdf}
-    \caption{Subestructura de un MDP.}
+    \caption{Estructura base y elementos de unos MDP.}
     \label{fig:mdp_struct}
 \end{figure}
  
 En este diagrama, se indican los principales elementos de los MDP:
 \begin{itemize}
-    \item $S$, $S'$: \textbf{Los estados}. A cada paso de tiempo $t$, se recibe un estado $S_t$ \cite[Pág. 48]{sutton_reinforcement_2020}. En este caso, $S_t$ será S y $S_t+1$ será S'. 
+    \item $S$, $S'$: \textbf{Los estados}. A cada paso de tiempo $t$, se recibe un estado $S_t$ \cite[Pág. 48]{sutton_reinforcement_2020}. En este caso, $S_t$ será S y $S_{t+1}$ será S'. 
     \item $\pi$: \textbf{La política}. La política define la forma de comportarse del agente \cite[Pág. 6]{sutton_reinforcement_2020}. Esta política es la encargada de seleccionar las acciones. En la figura \ref{fig:mdp_struct}, selecciona una de las dos acciones posibles. 
     \item $a$: \textbf{Las acciones}. Las acciones son los efectos intencionados del agente sobre el entorno \cite[Pág. 48]{sutton_reinforcement_2020}. Como se ve en el diagrama, la política selecciona una acción y, de esta acción, se transiciona al siguiente estado.
     \item $p$: \textbf{La probabilidad}. Una vez tomada una acción, existe una probabilidad de caer en un estado u otro \cite[Pág. 48]{sutton_reinforcement_2020}.
@@ -113,9 +113,9 @@ En el estado tres (figura \ref{fig:Estado3}), podemos ver un ejemplo de falta de
 Por último, en el estado 4 (figura \ref{fig:Estado4}), vemos un ejemplo de la estructura definida, integrado dentro de un MDP. La política debe elegir entre dos acciones, $a_2$ y $a_4$. Si se toma la acción 4, se entra directamente en el estado final. Si se toma, por otra parte, la acción $a_2$, se encuentran distintas transiciones asociadas a probabilidades. En este caso, se puede observar la naturaleza de las probabilidades descritas. La probabilidad de transicionar al estado 3, y obtener su recompensa, desde el estado $S_4$ tomando la acción $a_2$ es $p_3$. Cabe resaltar que la suma de todas las probabilidades asociadas al par estado-acción $S_4$ y $a_2$ debe ser 1, siguiendo la siguiente ecuación \ref{ec:pigual1} \cite[Pág. 48]{sutton_reinforcement_2020}:
 \begin{equation}
     \label{ec:pigual1}
-\sum{s \in S}
-\sum{r \in R}
-p(s',r|s,a) = 1, \text{para todo} s \in S, a \in A
+\sum_{s \in S}
+\sum_{r \in R}
+p(s',r|s,a) = 1, \text{ para todo } s \in S, a \in A
 \end{equation}
 \begin{figure}[!ht]
     \centering
@@ -166,7 +166,7 @@ Una vez definidos el \emph{retorno}, el \emph{factor de descuento} y la \emph{po
     \item \textbf{Función de valor estado}: La función de valor de un estado $s$ es el retorno esperado desde $s$ siguiendo una política $\pi$ \cite[Pág. 58]{sutton_reinforcement_2020}:
     \begin{equation}
         \label{ec:vs}
-        v_{\pi}(s) = \mathbb{E}[G_t \mid S_t = s], \text{para todo} s \in S
+        v_{\pi}(s) = \mathbb{E}[G_t \mid S_t = s], \text{ para todo } s \in S
     \end{equation}
     \item \textbf{Función de valor estado-acción}: La función de valor de un par estado-acción ($(s, a)$), es el retorno esperado tomado la acción $a$ desde el estado $s$ \cite[Pág. 58]{sutton_reinforcement_2020}:
     \begin{equation}
@@ -270,7 +270,7 @@ Los algoritmos usados en este trabajo son proporcionados por bibliotecas, por lo
 La programación dinámica o DP se refiere al conjunto de algoritmos usados para obtener la política óptima de un modelo MDP perfecto. La clave de estos algoritmos es el uso de las funciones de valor para organizar y estructurar la búsqueda de buenas políticas. La política óptima se obtiene a partir de la función de valor estado óptima (ecuación \ref{ec:vsopt}) o la función de valor acción-estado óptima (ecuación \ref{ec:qsaopt}). A su vez, estas satisfacen la ecuación de Bellman \cite[Pág. 73]{sutton_reinforcement_2020}:
 \begin{align}
     \label{ec:vsoptbell}
-    v_*(s) &= \max_{a}\sum_{s', r'}p(s', r \mid s, a)[r + \gamma v_*(s')] \text{por \ref{ec:bellmanv} y \ref{ec:vsopt}} \\
+    v_*(s) &= \max_{a}\sum_{s', r'}p(s', r \mid s, a)[r + \gamma v_*(s')] \text{ por \ref{ec:bellmanv} y \ref{ec:vsopt}} \\
     \label{ec:qsaoptbell}
     q_*(s, a) &= \sum_{s', r'}p(s', r \mid s, a)[r+ \gamma \max_{a'}q_*(s', a')] \text{ por \ref{ec:bellmanq} y \ref{ec:qsaopt}}
 \end{align}
