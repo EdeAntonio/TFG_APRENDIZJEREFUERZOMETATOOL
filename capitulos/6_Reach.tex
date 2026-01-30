@@ -33,9 +33,9 @@ En el siguiente apartado, se analiza cada uno de los manejadores individualmente
 
 \section{Manejadores}
 
-En este apartado se estudia cada uno de los manejadores detenidamente. Todos los manejadores y clases se definen en el archivo \verb|source/isaaclab_tasks/isaaclab_tasks/manager_based/manipulation/re| \verb|ach/reach_env_cfg.py|
+En este apartado se estudia cada uno de los manejadores detenidamente. Todos los manejadores y clases se definen en el archivo \verb|source/isaaclab_tasks/isaaclab_tasks| \verb|/manager_based/manipulation/reach/reach_env_cfg.py|
 
-\paragraph{ReachSceneCfg}
+\subsubsection{ReachSceneCfg}
 
 La primera clase definida dentro del código no es un manejador como tal, sino la clase con la que se definen los elementos de la escena. No obstante, pese a no encontrarse entre los manejadores, se trata dentro del código como uno, definiendo los distintos elementos que lo componen y dejando su creación final a la clase base. Al estar tratando con la clase de configuración de la tarea base, no se define ningún elemento específico. Todos ellos se definen a partir de la clase \clase{AssetBaseCfg}, la clase básica para la definición de \emph{primitivos} \cite{isaaclab_api}. 
 
@@ -67,7 +67,7 @@ class ReachSceneCfg(InteractiveSceneCfg):
 \end{lstlisting}
 Se declaran 4 elementos a crear en la escena. El primero de ellos es el plano general, almacenado en la variable \atributo{ground}. Este plano se define utilizando el plano por defecto, situándolo aproximadamente a un metro del origen. Después, se define la mesa de la escena, utilizando una mesa propia de IsaacLab y se sitúa aproximadamente a medio metro del origen de la escena. Seguidamente, se declara el robot. Al ser este un elemento específico de la aplicación se utiliza la constante \atributo{MISSING}, para poder reemplazarlo más adelante. Por último, se define el tipo de iluminación. Estos elementos se almacenan dentro de cada entorno como \emph{primitivos} (con la constante \atributo{ENV\_REGEX\_NS}) o en el mundo (con el directorio \verb|/World/|). De esta manera, la escena queda estructurada a través de sus distintos elementos para que la clase \clase{ManagerBasedRLEnv} pueda crearla directamente.
 
-\paragraph{CommandsCfg}
+\subsubsection{CommandsCfg}
 
 La siguiente clase definida es el primer manejador definido, \clase{CommandsCfg}. Este manejador se encarga de generar objetivos para el ejercicio de entrenamiento. En el caso en cuestión, el objetivo es llevar el efector final a una posición y orientación concreta. Para poder llevar a distintos puntos el efector se debe entrenar para un rango de puntos; si se entrenase para un punto concreto, solo podría llegar a este. 
 
@@ -75,8 +75,6 @@ Con esta clase se pretende generar una serie de puntos objetivo para entrenar el
 \begin{lstlisting}[style=mypython, caption={Definición de los objetivos de entrenamiento mediante la clase \clase{CommandsCfg}},  label={lst:cmdrea}]
 @configclass
 class CommandsCfg:
-    """Command terms for the MDP."""
-
     ee_pose = mdp.UniformPoseCommandCfg(
         asset_name="robot",
         body_name=MISSING,
@@ -87,30 +85,30 @@ class CommandsCfg:
             pos_y=(-0.2, 0.2),
             pos_z=(0.15, 0.5),
             roll=(0.0, 0.0),
-            pitch=MISSING,  # depends on end-effector axis
+            pitch=MISSING,  # depende del eje del efector final
             yaw=(-3.14, 3.14),
         ),
     )
 \end{lstlisting}
 Dentro de la clase, se define una única variable donde se almacenarán las posiciones objetivo. Todas las posiciones van referenciadas al origen de coordenadas del entorno. Estos puntos deben ir referidos además al efector final, indicando el robot en \atributo{asset\_name} y la articulación o enlace al que va referenciado, \atributo{body\_name}. Se indica también el intervalo de tiempo en el que se actualiza esta posición, en este caso 4 segundos, y si el punto es visible en la simulación. Por último, mediante la variable \atributo{ranges}, se define el rango de posiciones y rotaciones a generar.
 
-\paragraph{ActionCfg}
+\subsubsection{ActionCfg}
 
-Una vez definidos los objetivos del aprendizaje, se definen las acciones a través de su manejador \clase{ActionsCfg}. Este manejador define mediante cada término los distintos bloques de acciones. En este caso, (código \ref{lst:accrea}), se definen dos tipos de movimientos que tiene cualquier brazo robótico, el movimiento del brazo y el del \emph{gripper}.
+Una vez definidos los objetivos del aprendizaje, se definen las acciones a través de su manejador \clase{ActionsCfg}. Este manejador define mediante cada término los distintos bloques de acciones. En este caso, (código \ref{lst:accrea}), se definen dos tipos de movimientos que tiene cualquier brazo robótico, el movimiento del brazo y el del \emph{gripper}. En la configuración específica del entorno se definen estas acciones.
 \begin{lstlisting}[style=mypython, caption={Declaración de las acciones dentro de su manejador, \clase{ActionsCfg}},  label={lst:accrea}]
 class ActionsCfg:
     arm_action: ActionTerm = MISSING
     gripper_action: ActionTerm | None = None
 \end{lstlisting}
 
-\paragraph{ObservationsCfg}
+\subsubsection{ObservationsCfg}
 
 El siguiente manejador a tratar es el que define las observaciones. Dentro de este manejador se definen las distintas observaciones que se realizan sobre el entorno y se entregan al agente. Esta información viene estructurada dentro de una clase propia que hereda de \clase{ObsGroup}. Esto es necesario para que la clase principal, \clase{ManagerBasedRLEnv}, pueda concatenar las observaciones manteniendo su orden. Este orden cobra relevancia al implementar la red neuronal, pues se debe procesar un vector de observaciones con la misma forma. El código utilizado para definir este manejador es el siguiente (código \ref{lst:obsrea}):
 \begin{lstlisting}[style=mypython, caption={Definición de las observaciones dentro de su manejador, \clase{ObservationCfg}},  label={lst:obsrea}]
 class ObservationsCfg:
     @configclass
     class PolicyCfg(ObsGroup):
-        # observation terms (order preserved)
+        # terminos de las observaciones (se mantiene el orden)
         joint_pos = ObsTerm(func=mdp.joint_pos_rel, noise=Unoise(n_min=-0.01, n_max=0.01))
         joint_vel = ObsTerm(func=mdp.joint_vel_rel, noise=Unoise(n_min=-0.01, n_max=0.01))
         pose_command = ObsTerm(func=mdp.generated_commands, params={"command_name": "ee_pose"})
@@ -120,7 +118,7 @@ class ObservationsCfg:
             self.enable_corruption = True
             self.concatenate_terms = True
 
-    # observation groups
+    # grupos de observaciones
     policy: PolicyCfg = PolicyCfg()
 \end{lstlisting}
 De este modo, a través de términos, se definen 4 observaciones:
@@ -132,13 +130,11 @@ De este modo, a través de términos, se definen 4 observaciones:
 \end{itemize}
 Aparte de definir estas 4 observaciones, dentro de la clase \clase{PolicyCfg} se habilita el ruido (utilizado en las dos primeras observaciones), mediante el atributo \atributo{enable\_corruption}; así como indicar la concatenación de las observaciones. Por último, ya dentro del manejador, se almacena este grupo en una variable \atributo{policy}.
 
-\paragraph{EventCfg}
+\subsubsection{EventCfg}
 
 Otro de los manejadores que se debe definir es el de eventos. Este manejador se encarga de realizar procesos en momentos puntuales del proceso. Para este caso se define un único evento que ocurre al reiniciar el entorno: el reinicio de la posición de las articulaciones. Este reinicio además es escalado, lo que significa que la posición inicial variará dentro del rango estipulado (código \ref{lst:evtrea}).
 \begin{lstlisting}[style=mypython, caption={Definición de los eventos dentro de su manejador, \clase{EventsCfg}},  label={lst:evtrea}]
 class EventCfg:
-    """Configuration for events."""
-
     reset_robot_joints = EventTerm(
         func=mdp.reset_joints_by_scale,
         mode="reset",
@@ -149,14 +145,12 @@ class EventCfg:
     )
 \end{lstlisting}
 
-\paragraph{RewardsCfg}
+\subsubsection{RewardsCfg}
 
-Las recompensas también se definen a través de un manejador. En el su caso, al no ser necesario organizarlas de una manera concreta, pues se combinarán en un solo valor numérico, se pueden declarar a través de términos. Cada término tiene asociado una función con la que calcular la recompensa, junto con los argumentos de dicha función, y el peso de dicha recompensa. En el caso de estudio, este manejador se define de la siguiente forma (código \ref{lst:rewrea}):
+Las recompensas también se definen a través de un manejador. En su caso, al no ser necesario organizarlas de una manera concreta, pues se combinan en un solo valor numérico, se pueden declarar a través de términos. Cada término tiene asociado una función con la que se calcula la recompensa, así como los argumentos de dicha función y el peso de la recompensa. En el caso de estudio, este manejador se define de la siguiente forma (código \ref{lst:rewrea}):
 \begin{lstlisting}[style=mypython, caption={Definición de las recompensas dentro de su manejador, \clase{RewardsCfg}},  label={lst:rewrea}]
 class RewardsCfg:
-    """Reward terms for the MDP."""
-
-    # task terms
+    # Recompensas para las tareas
     end_effector_position_tracking = RewTerm(
         func=mdp.position_command_error,
         weight=-0.2,
@@ -172,8 +166,7 @@ class RewardsCfg:
         weight=-0.1,
         params={"asset_cfg": SceneEntityCfg("robot", body_names=MISSING), "command_name": "ee_pose"},
     )
-
-    # action penalty
+    # Penalizaciones para la eficiencia
     action_rate = RewTerm(func=mdp.action_rate_l2, weight=-0.0001)
     joint_vel = RewTerm(
         func=mdp.joint_vel_l2,
@@ -181,7 +174,7 @@ class RewardsCfg:
         params={"asset_cfg": SceneEntityCfg("robot")},
     )
 \end{lstlisting}
-Dentro del manejador se definen 5 recompensas:
+Dentro de él se definen 5 recompensas:
 \begin{itemize}
     \item \atributo{end\_effector\_position\_tracking}: penalización por el error de posición en la posición.
     \item \atributo{end\_effector\_position\_tracking\_fine\_grained}: recompensas por encontrarse cerca de la posición objetivo.
@@ -189,31 +182,26 @@ Dentro del manejador se definen 5 recompensas:
     \item \atributo{action\_rate}: penalización por el uso de las acciones.
     \item \atributo{joint\_vel}: penalización por la velocidad de las articulaciones.
 \end{itemize}
-Todas estas recompensas se suman para obtener la recompensa global. Cabe resaltar de nuevo la presencia de la constante \atributo{MISSING}, que deberá sustituirse al implementar la configuración específica del entorno.
+Todas estas recompensas se suman para obtener la recompensa global. Cabe resaltar de nuevo la presencia de la constante \atributo{MISSING}, que deberá sustituirse al implementar la configuración específica del entorno. Cada una de estas recompensas permite ajustar el comportamiento de la tarea. Las tres primeras se centran en su principal objetivo, llevar el efector final a una posición y una orientación fijada. Las dos primeras tratan específicamente la posición, siendo una más precisa que la otra. Esto sirve para mantener una recompensa que atraiga el brazo hacia una posición cercana y después, mediante esta segunda recompensa, se ajuste la posición para mejorar la precisión. Las dos últimas recompensas sirven para mejorar la eficiencia del movimiento, penalizando la utilización de acciones para reducir el consumo de energía.
 
-\paragraph{TerminationsCfg}
+\subsubsection{TerminationsCfg}
 
-Otro de los manejadores que deben definirse es el manejador para las terminaciones. Este manejador se encarga de identificar cuando los episodios de los entornos debe terminarse. En el caso de estudio, solo existe una condición, que se agote el tiempo de simulación (código \ref{lst:terrea})
+Otro de los manejadores que debe definirse es el manejador de las terminaciones. Este manejador se encarga de identificar cuando los episodios de los entornos deben terminarse. En el caso de estudio, solo existe una condición, que se agote el tiempo de simulación (código \ref{lst:terrea}).
 \begin{lstlisting}[style=mypython, caption={Definición de las terminaciones dentro de su manejador, \clase{TerminationsCfg}},  label={lst:terrea}]
 @configclass
 class TerminationsCfg:
-    """Termination terms for the MDP."""
-
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
 \end{lstlisting}
 
-\paragraph{CurriculumCfg}
+\subsubsection{CurriculumCfg}
 
 El último manejador definido es el del currículum. Este manejador es el encargado de alterar parámetros de la simulación para que se adapten a nuevas condiciones de entrenamiento. En este caso, se utiliza para modificar el peso de las penalizaciones por acciones y velocidades, buscando, después de un tiempo de entrenamiento, mejorar la eficiencia del movimiento (código \ref{lst:currea}).
 \begin{lstlisting}[style=mypython, caption={Definición del currículum dentro de su manejador, \clase{CurriculumCfg}},  label={lst:currea}]
 @configclass
 class CurriculumCfg:
-    """Curriculum terms for the MDP."""
-
     action_rate = CurrTerm(
         func=mdp.modify_reward_weight, params={"term_name": "action_rate", "weight": -0.005, "num_steps": 4500}
     )
-
     joint_vel = CurrTerm(
         func=mdp.modify_reward_weight, params={"term_name": "joint_vel", "weight": -0.001, "num_steps": 4500}
     )
@@ -223,17 +211,15 @@ Una vez definidos los manejadores, estos se almacenan dentro del configurador ge
 
 \section{Configuración y registro del entorno específico}
 
-La configuración específica del entorno, \clase{UR3ReachEnvCfg}, usando el robot UR3e con gripper, viene definida dentro del archivo \verb|source/ARMetaToolPG/ARMetaToolPG/tas|\verb|ks/manager_based/reach/config/ur_3/joint_pos_env_cfg.py|, alojado dentro del proyecto general de este TFG. Para ajustar esta configuración al entorno y poder instanciar la clase, se definirán una serie de atributos dentro del método {\_\_pos\_init\_\_(self)}.
+La configuración específica del entorno, \clase{UR3ReachEnvCfg}, usando el robot UR3e con el gripper contemplado, viene definida dentro del archivo \verb|source/ARMetaToolPG/ARMe| \verb|taToolPG/tasks/manager_based/reach/config/ur_3/joint_pos_env_cfg.py|, alojado dentro del proyecto general de este TFG. Para ajustar esta configuración al entorno y poder instanciar la clase, se definen una serie de atributos dentro del método \metodo{\_\_pos\_init\_\_\allowbreak (self)}.
 
-El primero de ellos que se definirá será el atributo \atributo{robot}. Para ello, en un archivo aparte, \verb|source/ARMetaToolPG/ARMetaToolPG/assets/robots/ur3_configuration.py|, se ha preparado la configuración de este robot, almacenándola en la constante \atributo{UR3e}. Dentro de esta configuración se utiliza un archivo usd, que es representativo del UR3e con gripper, y fue cedido por el equipo de MetaTool \cite{metatool}.
+El primero de ellos que se definirá será el atributo \atributo{robot}. Para ello, en un archivo aparte, \verb|source/ARMetaToolPG/ARMetaToolPG/assets/robots/ur3_configuration.py|, se ha preparado la configuración del robot a entrenar, almacenándola en la constante \atributo{UR3e}. Dentro de esta configuración se utiliza un archivo usd, que es representativo del UR3e con gripper, y fue cedido por el equipo de MetaTool \cite{metatool}.
 
 Seguidamente se indica la referencia del robot para las recompensas. En el apartado anterior se ha visto como la referencia del robot quedaba indicada como \atributo{MISSING}. Ahora, esta referencia se ajusta a una parte del robot que tiene como centro de coordenadas el centro del gripper \atributo{gripper\_center}. Continuando con aspectos del robot, se definen también las acciones del brazo, las cuales también habían quedado pendiente. Por último, se reajusta la generación de coordenadas, donde se indica el rango del entrenamiento. 
 
 Además de esta clase de configuración, específica para el entrenamiento, se define otra para su posterior evaluación. Esta hereda de la clase anterior, sobre la cual se hacen dos únicas modificaciones: el numero de entornos y su espaciado, y la inhabilitación del ruido en las observaciones.
 
-Teniendo ambas configuraciones definidas y la configuración del agente previamente definida, ahora en \verb|source/ARMetaToolPG/ARMetaToolPG/tasks/manager_based/reach/| \verb|config/ur_3/agents/rsl_rl_ppo_cfg.py|, se puede registrar, por separado, las tareas de entrenamiento y evaluación. Este registro se da en el archivo: \verb|source/ARMetaToolPG/ARMe|\verb|taToolPG/tasks/manager_based/reach/config/ur_3/__init__.py|. Para ambos casos, se vuelve a realizar el registro como en el capítulo anterior, esta vez utilizando como punto de entrada para la clase general \clase{ManagerBasedRLEnv}.
-
-Teniendo ambas tareas registradas, se puede pasar a realizar el entrenamiento del agente. Esto se verá en el próximo apartado.
+Teniendo ambas configuraciones definidas y la configuración del agente previamente definida, ahora en \verb|source/ARMetaToolPG/ARMetaToolPG/tasks/manager_based/reach/| \verb|config/ur_3/agents/rsl_rl_ppo_cfg.py|, se puede registrar, por separado, las tareas de entrenamiento y evaluación. Este registro se da en el archivo: \verb|source/ARMetaToolPG/ARMe| \verb|taToolPG/tasks/manager_based/reach/config/ur_3/__init__.py|. Para ambos casos, se vuelve a realizar el registro como en el capítulo anterior, esta vez utilizando como punto de entrada para la clase general \clase{ManagerBasedRLEnv}. Con ambas tareas registradas, se realiza el entrenamiento del agente, lo que se verá en el próximo apartado.
 
 \section{Entrenamiento y evaluación}
 
@@ -248,10 +234,10 @@ De una misma manera que en el capítulo anterior, se va realizar el aprendizaje 
 
 Para este caso se utilizarán 512 entornos. Es interesante notar que al utilizar la forma de manejadores, al descomponer las recompensas en términos individuales, el entrenamiento entrega la información de las recompensas desglosada; a diferencia de la forma directa, donde solo se obtenía el valor de la recompensa global media. Esto nos permite tener más información y poder detectar fácilmente posibles fallos en el entrenamiento. Una vez terminado el entrenamiento, se observa que la recompensa es negativa. Esto, sin embargo, no es relevante, pues lo importante es que la recompensa se maximize, no que esta sea alta. En este caso, al penalizar en la mayoría de recompensas, lo óptimo es que la recompensa sea próxima a 0, lo cual parece cumplirse. El siguiente paso, será evaluar con \verb|play.py|, de modo que podamos estudiar si cumple los objetivos y si esta recompensa puede minimizarse de alguna forma.
 
-Al evaluar la política de esta manera se observan un problema principal. Por un lado, existen posiciones que requieren que el robot contacte consigo mismo o con el suelo. Esto es un problema, pues puede inhabilitar el movimiento o dañar el robot. Como se espera poder implementar esta política en el robot real, en el próximo apartado se corregirá y mejorará el ejercicio para hacerlo apto para su implementación final.
+Al evaluar la política de esta manera se observan un problema principal. Por un lado, existen posiciones que requieren que el robot contacte consigo mismo o con el suelo. Esto es un problema, pues puede inhabilitar el movimiento o dañar el robot. Por otro lado, al estar definido el movimiento del gripper como una de las acciones, este se debe tener en cuenta en la implementación, algo no deseado para esta tarea concreta. Como se espera poder implementar esta política en el robot real, en el próximo apartado se corregirá y mejorará el ejercicio para hacerlo apto para la utilización de la política.
 
 \section{Mejoras y correcciones}
-La implementación de este ejercicio se realizará en un robot UR3, con un gripper incluido. Por tanto, es importante obtener un modelo fiel a este robot; es decir, se debe tener en cuenta el gripper en el entrenamiento. Para ello, se ha utilizado un fichero .usd que contiene este gripper. En el proyecto general de este trabajo \api{ARMetaToolPG}, se puede encontrar este archivo en la carpeta \verb|source/ARMetaToolPG/data/ur3e|. No obstante, para este ejercicio de alcance, no se tiene en cuenta las acciones del gripper; no se estudia agarre. Por ello, para facilitar el ejercicio y que la posición de la pinza no afecte a la política, se elimina los accionamientos de cierre. De este modo, se obtiene un modelo que tiene en cuenta el gripper, sin que este afecte en las observaciones al posicionamiento. Para este modelo se crea una nueva configuración, mostrada en el siguiente código \ref{lst:UR3np}:
+La implementación de este ejercicio se realizará en un robot UR3, con un gripper incluido. Por tanto, es importante obtener un modelo fiel a este robot; es decir, se debe tener en cuenta el gripper en el entrenamiento. Para ello, se ha utilizado un fichero .usd que contiene este gripper. En el proyecto general de este trabajo \api{ARMetaToolPG}, se puede encontrar este archivo en la carpeta \verb|source/ARMetaToolPG/data/ur3e|. No obstante, para este ejercicio de alcance, no se tiene en cuenta las acciones del gripper; es decir, no se estudia el agarre. Por ello, para facilitar el ejercicio y que la posición de la pinza no afecte a la política, se eliminan los accionamientos de cierre. De este modo, se obtiene un modelo que tiene en cuenta el gripper, sin que este afecte a las observaciones del posicionamiento. Para este modelo se crea una nueva configuración, mostrada en el siguiente código \ref{lst:UR3np}:
 \begin{lstlisting}[style=mypython, caption={Definición del modelo para el UR3 con gripper, \atributo{UR3\_CFG\_NP}},  label={lst:UR3np}]
 UR3_CFG_NP = ArticulationCfg(
     spawn=sim_utils.UsdFileCfg(
@@ -287,9 +273,9 @@ UR3_CFG_NP = ArticulationCfg(
     },
 )
 \end{lstlisting}
-An su vez, en esta nueva configuración, se ajusta la rotación y la posición inicial del robot para que coincida con la del robot de pruebas.
+An su vez, en esta nueva configuración, se ajusta la rotación y la posición inicial del robot para que coincida con la del robot de pruebas. También, con el objetivo de evitar el contacto del robot consigo mismo, se define como verdadera la variable \atributo{enable\_self\_collision}. Esta variable permite que dentro de la simulación se tenga en cuenta estas colisiones del robot.
 
-Por otro lado, también con el objetivo de realizar pruebas, se va ajustar los rangos de coordenadas. Por un lado, se va a definir un nuevo rango de operación, teniendo en cuenta el espacio donde se va a trabajar. Por otro lado, para analizar el ajuste de la orientación, se va a buscar mantener el gripper paralelo al suelo, de un mismo modo que el torso de la araña. Para ello, se van a mantener la rotación en \emph{roll} y \emph{pitch} constante, para variar únicamente la rotación en \emph{yaw} (código \ref{lst:ranges}).
+Por otro lado, también con el objetivo de realizar pruebas, se ajustan los rangos de coordenadas. Por un lado, se define un nuevo rango de operación, teniendo en cuenta el espacio donde se trabajará. Por otro lado, para analizar el ajuste de la orientación, se va a buscar mantener el gripper paralelo al suelo, de un mismo modo que el torso de la araña. Para ello, se mantiene la rotación en \emph{roll} y \emph{pitch} constante, para variar únicamente la rotación en \emph{yaw} (código \ref{lst:ranges}).
 \begin{lstlisting}[style=mypython, caption={Cambio en los rangos de entrenamiento, dentro de la clase \clase{UR3ReachEnvCfg}},  label={lst:ranges}]
         self.commands.ee_pose.ranges.pos_y = (-0.40, -0.20)
         self.commands.ee_pose.ranges.pos_z = (0.15, 0.35)
@@ -298,16 +284,16 @@ Por otro lado, también con el objetivo de realizar pruebas, se va ajustar los r
         self.commands.ee_pose.ranges.pitch = (0, 0)
         self.commands.ee_pose.ranges.yaw = (-math.pi/2, math.pi/2)
 \end{lstlisting}
-También se va cambiar la referencia del marco. Para ello, se utilizará el miembro virtual del modelo situado en el centro del gripper, \atributo{gripper\_center} (código \ref{lst:bodyname}):
-\begin{lstlisting}[style=mypython, caption={Cambio en las referencias del entrenamiento, dentro de la clase \clase{UR3ReachEnvCfg}},  label={lst:bodyname}]
+También se cambia la referencia del marco. Para ello, se utiliza el miembro virtual del modelo situado en el centro del gripper, \atributo{gripper\_center} (código \ref{lst:bodyname}):
+\begin{lstlisting}[style=mypython, caption={Cambio en las referencias del entrenamiento al centro del gripper, dentro de la clase \clase{UR3ReachEnvCfg}},  label={lst:bodyname}]
         self.rewards.end_effector_position_tracking.params["asset_cfg"].body_names = ["gripper_center"]
         self.rewards.end_effector_position_tracking_fine_grained.params["asset_cfg"].body_names = ["gripper_center"]
         self.rewards.end_effector_orientation_tracking.params["asset_cfg"].body_names = ["gripper_center"]
         self.commands.ee_pose.body_name = "gripper_center"
 \end{lstlisting}
 
-Por último, se incluye una nueva penalización, en el caso de que se entre contacto con la mesa. Esta penalización se incluye después de haberse trabajado en el proyecto MetaTool, siendo una de las recompensas más utilizadas durante este trabajo. Esta última penalización, \atributo{touch\_desk}, se verá en detalle en el próximo capítulo. A su vez, la evaluación de estas correcciones se dará en el último capítulo, junto al estudio del problema \emph{sim2real}.
+Por último, se incluye una nueva penalización, en el caso de que se entre en contacto con la mesa. Esta penalización se incluye después de haberse trabajado en el proyecto MetaTool, siendo una de las recompensas más utilizadas durante este trabajo. Esta última penalización, \atributo{touch\_desk}, se verá en detalle en el próximo capítulo. A su vez, la evaluación de estas correcciones se dará en el último capítulo, junto al estudio del problema \emph{sim2real}.
 
 \section{Conclusiones: Directo contra Manejadores}
 
-Una vez analizadas ambas formas de programar posemos evaluar ambas conjuntamente. Como se ha comentado en el apartado anterior, la forma directa permite un mayor control del entorno, definiendo explícitamente la implementaciones de las acciones, la recogida de observaciones y la generación de recompensas. Al realizar el ejercicio por manejadores, esta definición viene predefinida, recayendo sobre el desarrollador únicamente la definición de las propias observaciones, recompensas y acciones. En tareas sencillas, o en casos donde el peso del entrenamiento no recaiga principalmente en estos elementos, sino en como se apliquen, el modo directo es el más útil. Sin embargo, para casos más complejos, con múltiples recompensas y observaciones, la manera más eficiente es por manejadores. Los ejemplos del proyecto MetaTool, que se verán en el próximo capítulo, utilizan esta segunda forma.
+Una vez analizadas ambas formas de programar se evalúan ambas. Como se ha comentado en el apartado anterior, la forma directa permite un mayor control del entorno, definiendo explícitamente las implementaciones de las acciones, la recogida de observaciones y la generación de recompensas. Al realizar el ejercicio por manejadores, esta definición viene predefinida, recayendo sobre el desarrollador únicamente la definición de las propias observaciones, recompensas y acciones entre otras. En tareas sencillas, o en casos donde el peso del entrenamiento no recaiga principalmente en estos elementos sino en como se apliquen, el modo directo es el más útil. Sin embargo, para casos más complejos, con múltiples recompensas y observaciones, la manera más eficiente de programar es por manejadores. Los ejemplos del proyecto MetaTool, que se verán en el próximo capítulo, utilizan esta segunda forma.
