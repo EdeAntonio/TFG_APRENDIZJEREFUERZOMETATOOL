@@ -16,7 +16,7 @@ El primer punto que se debe estudiar del problema Sim2Real son los distintos enf
 \end{itemize}
 
 En \emph{"Analysis of Randomization Effects on Sim2Real Transfer in
-Reinforcement Learning for Robotic Manipulation Tasks"} \cite{sim2realpaper} se realizó un estudio de estos distintos tipos de entrenamiento. De este mismo articulo se obtuvo los enfoques anteriores. El que obtuvo el mejor resultado fue el aprendizaje con aleatorización  del dominio, seguido por \emph{fine-tunning}. Debido a ser el mejor modo y tener tiempo limitado dentro del entrenamiento, se escoge esta opción para enfocar el Sim2Real.
+Reinforcement Learning for Robotic Manipulation Tasks"} \cite{sim2realpaper} se realizó un estudio de estos distintos tipos de entrenamiento. De este mismo articulo se obtuvo los enfoques anteriores. El que consiguió el mejor resultado fue el aprendizaje con aleatorización  del dominio, seguido por \emph{fine-tunning}. Debido a ser el mejor modo y tener tiempo limitado dentro del entrenamiento, se escoge esta opción para enfocar el Sim2Real.
 
 En el próximo apartado se estudiará como incluir esta herramienta en el aprendizaje, concretamente en el ejercicio de empuje (pues en el de alcance viene integrado en el ejemplo).
 
@@ -66,7 +66,7 @@ Dentro de este archivo también se puede encontrar la función que define el buc
 
 Con esto, se puede ejecutar una simulación externa al aprendizaje. En este trabajo, este script ha sido de gran utilidad. No solo para la evaluación de la política, dónde es un paso clave en su implementación, sino también para explorar posiciones de robot, utilizando la clase \clase{SingleArticulation} dentro del controlador. Por otro lado, la evaluación de la posible implementación de la política de empuje, pues permite tener un fácil acceso a las posiciones de la herramienta y el objeto. En el siguiente apartado, se estudiará la implementación en el robot real, utilizando un cliente python \cite{noauthor_universalrobotsrtde_python_client_library_2025} y un robot UR3 como servidor, controlado desde el cliente python.
 
-No obstante, durante la realización de estas pruebas y la realización de nuevos entrenamientos se encontraron nuevos problemas. Uno de estos problemas fue la inefectividad del cierre del gripper. En nuevos entrenamientos se produjeron fallos en el cierre de este, lo que detuvieron el proceso de aprendizaje. Se localizó el problema a dos posibles fuentes: contaminación del archivo .usd al realizar algunas modificaciones o, con mayor probabilidad, errores en el funcionamiento interno de la acción del gripper, concretamente en la clase \clase{BinaryJointActionPosition}. Ambos problemas requieren una mayor dedicación y enfoque en elementos externos al trabajo. Por un lado, funcionamientos internos y muy específicos de IsaacLab, o por el otro, trabajo con el lenguaje .usd. 
+No obstante, durante la realización de estas pruebas y la realización de nuevos entrenamientos se encontraron nuevos problemas. Uno de estos problemas fue la inefectividad del cierre del gripper. En nuevos entrenamientos se produjeron fallos en el cierre de este, lo que detuvieron el proceso de aprendizaje. Se localizó el problema a dos posibles fuentes: contaminación del archivo .usd al realizar algunas modificaciones o, con mayor probabilidad, errores en el funcionamiento interno de la acción del gripper, concretamente en la clase \clase{BinaryJointActionPosition}. Ambos problemas requieren una mayor dedicación y enfoque en elementos externos al trabajo. Por un lado, funcionamientos internos y muy específicos de IsaacLab, o por el otro, trabajo con el lenguaje .usd. Por esto, se realizo este mismo trabajo con el ejercicio \emph{reach}, que contemplaba desde un primer momento aleatorización del dominio. Confirmado el funcionamiento de su política, se continúa realizando la implementación para este ejercicio. La simulación de este ejercicio se muestra en la carpeta de vídeos de los anexos.
 
 \section{Implementación en robot real}
 
@@ -188,7 +188,15 @@ Las pruebas realizadas en las simulación permitieron confirmar el correcto func
 
 Por un lado, al trabajar sin la herramienta definida dentro de la simulación se obtuvo un desplazamiento cercano a los 10 cm, aproximadamente el tamaño del gripper. Al mantener una rotación fija, esta diferencia solo afectó al eje Z, obteniendo en los otros ejes una desviación cercana a los 3 mm en el caso de X y 5 mm en el caso de Y. Por otro lado, la desviación obtenida en los ejes fue de 2,7 cm para el eje X, 3,2 cm para el Y y 1'7 cm para el Z. Estos valores no indican una precisión suficiente para su implementación en tareas reales, pero demuestran el funcionamiento de las redes neuronales para el control del robot. Mediante una revisión de las recompensas, aumentando el valor de la precisión, así como la realización de entrenamientos más largos, se podría obtener una mayor precisión. 
 
-En relación con la orientación, las desviaciones obtenidas en los ángulos de rotación se sitúan en torno a 6° para el roll y 5° para el pitch y el yaw, lo que permite considerar la estimación como una aproximación inicial válida. En el caso del yaw se observa un desplazamiento constante cercano a los 135°, tal y como se muestra en la \textbf{***INCLUSIÓN DE FIGURA PENDIENTE***}, que no corresponde a un error del modelo sino a un offset sistemático. Este desfase se debe, por un lado, a las diferencias de convenio empleadas en la definición de los sistemas de referencia y, por otro, a un desfase adicional de aproximadamente 45° asociado a la orientación fija del eje de la herramienta. Una vez considerado este offset, la dispersión del error en yaw es comparable a la obtenida en los otros ejes de rotación.
+En relación con la orientación, las desviaciones obtenidas en los ángulos de rotación se sitúan en torno a 6° para el roll y 5° para el pitch y el yaw, lo que permite considerar la estimación como una aproximación inicial válida. En el caso del yaw se observa un desplazamiento constante cercano a los 135°, tal y como se muestra en la figura \ref{fig:desfasgrip}, por lo que no corresponde a un error del modelo sino a un offset sistemático. Este desfase se debe, por un lado, a las diferencias de convenio empleadas en la definición de los sistemas de referencia y, por otro, a un desfase adicional de aproximadamente 45° asociado a la orientación fija del eje de la herramienta. Una vez considerado este offset, la dispersión del error en yaw es comparable a la obtenida en los otros ejes de rotación.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imagenes/desfasegrip.png}
+    \caption{Desfase en la referencia del gripper.}
+    \label{fig:Move}
+\end{figure}
+
 
 La tabla con todos los datos recogidos se presenta en el anexo C, para facilitar la lectura y presentación de este documento.
 
