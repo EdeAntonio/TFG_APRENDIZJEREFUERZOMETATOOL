@@ -3,45 +3,45 @@
 
 El problema Sim2Real hace referencia a la diferencia entre el rendimiento de una política en el simulador y en el mundo real. Estas diferencias pueden deberse a multiples factores. Puede presentarse por la mala representación de características del entorno o por la percepción del robot, que puede hacer variar las observaciones \cite{da_survey_2025}. Estos y otros factores hacen que sea un problema común para todos los ejercicios de aprendizaje por refuerzo.
 
-En este capítulo se presentan algunas soluciones para el problema. Después, se selecciona aquella que se adapta mejor al trabajo, implementando la solución dentro del ejercicio de entrenamiento. A continuación, se realiza una nueva simulación dentro de IsaacSim. En esta nueva simulación, no se usarán las herramientas de IsaacLab. El objetivo es probar la política en un entorno de simulación externo al probado. El siguiente paso será la implementación en el robot real. Para ello, se ha diseñado un modulo en python usando herramientas de UR-RTDE \cite{noauthor_universalrobotsrtde_python_client_library_2025}. Por último, se realizará un ensayo, implementando una política en un robot.
+En este capítulo se presentan algunas soluciones para el problema. Después, se selecciona aquella que se adapta mejor al trabajo, implementando la solución dentro del ejercicio de entrenamiento. A continuación, se realiza una nueva simulación dentro de IsaacSim, donde no se utilizan las herramientas de IsaacLab. El objetivo es probar la política en un entorno de simulación externo al entrenado. Por último, se realiza la implementación en el robot real. Para ello, se diseña un modulo en python usando herramientas de UR-RTDE \cite{noauthor_universalrobotsrtde_python_client_library_2025}.
 
 \section{Enfoques}
-El primer punto que se debe estudiar del problema Sim2Real son los distintos enfoques con los que se puede trabajar para minimizar su efecto. La manera más eficaz de poder adaptar a la implementación real es aleatorizar ciertos parámetros que puedan diferir en el mundo real. De este modo, se puede entrenar la política para afrontarse a variaciones en dichos parámetros. Teniendo en cuenta esto, surgen distintos tipos de aprendizaje \cite{sim2realpaper}:
+El primer punto que se debe estudiar del problema Sim2Real son los distintos enfoques con los que se puede trabajar para minimizar su efecto. La manera más eficaz de poder adaptar a la implementación real es aleatorizar ciertos parámetros que puedan diferir en el mundo real. De este modo, se puede entrenar la política para afrontarse a variaciones en estos. Por ello, surgen distintos tipos de aprendizaje \cite{sim2realpaper}:
 \begin{itemize}
     \item Simulación ideal: no se incluye ningún parámetro aleatorizado.
-    \item \emph{Fine-tunning}: primero se entrena en una simulación ideal. Después, se identifican los parámetros que necesitan ser aleatorizados y se entrena para cada uno de ellos por separado.
-    \item Curriculum: de nuevo, entrena primero en una simulación ideal e identifica los parámetros a aleatorizar. En este caso, los parámetros se van incluyendo uno a uno, manteniendo los anteriores; finalizando por tanto con un entrenamiento en el que se tienen en cuenta todos los parámetros aleatorizados.
+    \item \emph{Fine-tunning}: primero se entrena en una simulación ideal, después, se identifican los parámetros que necesitan ser aleatorizados y se entrena para cada uno de ellos por separado.
+    \item Curriculum: de nuevo, entrena primero en una simulación ideal e identifica los parámetros a aleatorizar. En este caso, los parámetros se van incluyendo uno a uno, manteniendo los anteriores; finaliza por tanto con un entrenamiento en el que se tienen en cuenta todos los parámetros aleatorizados.
     \item Ideal a aleatorio: primero se entrena con una simulación ideal y después se vuelve a entrenar con todos los parámetros aleatorizados.
     \item Aleatorización del dominio: se entrena desde una simulación que contempla desde el principio todas las variables aleatorizadas.
 \end{itemize}
 
 En \emph{"Analysis of Randomization Effects on Sim2Real Transfer in
-Reinforcement Learning for Robotic Manipulation Tasks"} \cite{sim2realpaper} se realizó un estudio de estos distintos tipos de entrenamiento. De este mismo articulo se obtuvo los enfoques anteriores. El que obtuvo el mejor resultado fue el aprendizaje con aleatorización  del dominio, seguido por \emph{fine-tunning}. Debido a ser el mejor modo y tener tiempo limitado dentro del entrenamiento, se escoge esta opción para enfocar el Sim2Real.
+Reinforcement Learning for Robotic Manipulation Tasks"} \cite{sim2realpaper} se realiza un estudio de estos distintos tipos de entrenamiento. El que mejor resultado obtiene es el aprendizaje con aleatorización  del dominio, seguido por \emph{fine-tunning}. Debido a ser el mejor modo y tener tiempo limitado para el entrenamiento, se escoge esta opción para enfocar el Sim2Real.
 
-En el próximo apartado se estudiará como incluir esta herramienta en el aprendizaje, concretamente en el ejercicio de empuje (pues en el de alcance viene integrado en el ejemplo).
+En el próximo apartado se estudia como incluir esta herramienta en el aprendizaje, concretamente en el ejercicio de empuje (pues en el de alcance viene integrado en el ejemplo).
 
 \section{Aleatorización del dominio.}
-La aleatorización del dominio consiste en proveer a la simulación de una serie de variaciones en el entrenamiento para generalizar la política en el mundo real \cite{tobin_domain_2017}. Para poner un ejemplo de esta implementación se introducirán para el ejemplo de empuje una variabilidad en algunas de sus observaciones y eventos.
+La aleatorización del dominio consiste en proveer a la simulación de una serie de variaciones en el entrenamiento para generalizar la política en el mundo real \cite{tobin_domain_2017}. Para poner un ejemplo de esta implementación se introducen en el ejemplo de empuje una variabilidad en algunas de sus observaciones y eventos.
 
-Dentro de las observaciones, la clase \clase{ObsTerm} permite introducir ruido a la observación mediante el parámetro del constructor \atributo{noise}. Esta ruido funcionará como la variabilidad del sistema. Para este, se utilizará la clase \clase{GaussianNoiseCfg}. Esta clase recibe la siguiente serie de parámetros en su constructor \cite{isaaclab_api}:
+Dentro de las observaciones, la clase \clase{ObsTerm} permite introducir ruido a la observación mediante el parámetro del constructor \atributo{noise}. Este ruido funciona como la variabilidad del sistema. Se utiliza la clase \clase{GaussianNoiseCfg}, que recibe la siguiente serie de parámetros en su constructor \cite{isaaclab_api}:
 \begin{itemize}
-    \item \atributo{mean}: la media del ruido. Esto nos permite incluir un desfase al parámetro. En este caso, la media será 0, pues no contamos con ninguna desviación en los medidores.
+    \item \atributo{mean}: la media del ruido. Esto permite incluir un desfase al parámetro. En este caso, la media será 0, pues no se cuenta con ninguna desviación en los medidores.
     \item \atributo{std}: desviación estándar del ruido.
     \item \atributo{operation}: operación para incluir el ruido
 \end{itemize}
-Este tipo de ruido se incluirá a las observaciones de la velocidad, la posición del objeto y la posición de la herramienta.
+Este tipo de ruido se incluye en las observaciones de velocidad, de posición del objeto y de posición de la herramienta.
 
-Por otro lado, dentro del manejador de eventos tenemos distintas formas de introducir variabilidad al sistema. Esto se realiza mediante el parámetro \atributo{func}. En este ejemplo se han incluido dos funciones capaces de variar aspectos relevantes:
+Por otro lado, dentro del manejador de eventos se tienen distintas formas de introducir variabilidad al sistema. Esto se realiza mediante el parámetro \atributo{func}. En este ejemplo se incluyen tres funciones capaces de variar aspectos relevantes:
 \begin{itemize}
     \item \atributo{randomize\_joint\_parameters}: varía la posición de las articulaciones desde las cuales se empieza.
     \item \atributo{randomize\_rigid\_body\_material}: varía los parámetros de los objetos físicos.
     \item \atributo{randomize\_rigid\_body\_mass}: varía la masa de los objetos rígidos en escena.
 \end{itemize}
 
-Con esta variabilidad incluida se ha analizado como incluir aleatorización del dominio y preparado el sistema para una posible implementación. A continuación se estudiará como realizar una simulación externa a la herramienta IsaacLab.
+Con esta variabilidad incluida se ha analizado como incluir aleatorización del dominio y preparado el sistema para una posible implementación. A continuación, se estudia como realizar una simulación externa a la herramienta IsaacLab.
 
 \section{Implementación en IsaacSim}
-A continuación se va estudiar la implementación del sistema en IsaacSim. Esta implementación es de desarrollo propio, empleando la clase \clase{PolicyController} y \clase{ConfigLoader} entre otras herramientas de IsaacSim \cite{NVIDIA_IsaacSim}. El código se encuentra dentro del proyecto general, incluido en los anexos. A su vez, el código viene inspirado en los ejemplos de IsaacSim, implementando una estructura distinta ya que estos vienen en una extensión \cite[isaacsim.examples.interactive]{NVIDIA_IsaacSim}.
+En este apartado se presenta el despliegue de la política dentro del entorno de simulación IsaacSim. La implementación es de desarrollo propio, empleando la clase \clase{PolicyController} y \clase{ConfigLoader} entre otras herramientas de IsaacSim \cite{NVIDIA_IsaacSim}. El código se encuentra dentro del proyecto general, incluido en los anexos. A su vez, este viene inspirado en los ejemplos de IsaacSim, pero se implementa una estructura distinta ya que estos vienen en una extensión sobre la cual no se puede trabajar \cite[isaacsim.examples.interactive]{NVIDIA_IsaacSim}.
 
 El primer archivo relevante a esta implementación se encuentra en \verb|source/ARMetaToolPG/ARMetaToolPG/assets/policys/policy_controllers/robohabilis.py|. Este archivo declara una clase \clase{RobohabilisPullObjectPolicy} que hereda de la clase \clase{PolicyController}. Esta clase encarga de cargar y manejar la política. A continuación, se van a estudiar el objetivo de sus funciones, que serán a su vez sus responsabilidades:
 \begin{itemize}
