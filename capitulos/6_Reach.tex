@@ -229,12 +229,21 @@ De una misma manera que en el capítulo anterior, se va realizar el aprendizaje 
     \label{fig:reachenttst}
     \centering
     \includegraphics[width=\linewidth]{imagenes/reachenttst.png}
-    \caption{Prueba para el entrenamiento del robot araña}
+    \caption{Prueba de entrenamiento para el ejercicio \emph{reach}}
 \end{figure}
 
-Para este caso se utilizarán 512 entornos. Es interesante notar que al utilizar la forma de manejadores, al descomponer las recompensas en términos individuales, el entrenamiento entrega la información de las recompensas desglosada; a diferencia de la forma directa, donde solo se obtenía el valor de la recompensa global media. Esto nos permite tener más información y poder detectar fácilmente posibles fallos en el entrenamiento. Una vez terminado el entrenamiento, se observa que la recompensa es negativa. Esto, sin embargo, no es relevante, pues lo importante es que la recompensa se maximize, no que esta sea alta. En este caso, al penalizar en la mayoría de recompensas, lo óptimo es que la recompensa sea próxima a 0, lo cual parece cumplirse. El siguiente paso, será evaluar con \verb|play.py|, de modo que podamos estudiar si cumple los objetivos y si esta recompensa puede minimizarse de alguna forma.
+Para este caso se utilizarán 512 entornos. Es interesante notar que al utilizar la forma de manejadores, al descomponer las recompensas en términos individuales, el entrenamiento entrega la información de las recompensas desglosada; a diferencia de la forma directa, donde solo se obtenía el valor de la recompensa global media. Este desglose se puede apreciar en la figura \ref{fig:reachenthls} Esto nos permite tener más información y poder detectar fácilmente posibles fallos en el entrenamiento. Una vez terminado el entrenamiento, se observa que la recompensa es negativa. Esto, sin embargo, no es relevante, pues lo importante es que la recompensa se maximize, no que esta sea alta. En este caso, al penalizar en la mayoría de recompensas, lo óptimo es que la recompensa sea próxima a 0, lo cual parece cumplirse. El siguiente paso es evaluar con \verb|play.py|, para estudiar si cumple los objetivos y si esta recompensa puede minimizarse de alguna forma.
 
-Al evaluar la política de esta manera se observan un problema principal. Por un lado, existen posiciones que requieren que el robot contacte consigo mismo o con el suelo. Esto es un problema, pues puede inhabilitar el movimiento o dañar el robot. Por otro lado, al estar definido el movimiento del gripper como una de las acciones, este se debe tener en cuenta en la implementación, algo no deseado para esta tarea concreta. Como se espera poder implementar esta política en el robot real, en el próximo apartado se corregirá y mejorará el ejercicio para hacerlo apto para la utilización de la política.
+
+\begin{figure}[ht]
+    \label{fig:reachenttst}
+    \centering
+    \includegraphics[width=\linewidth]{imagenes/reachenthls.png}
+    \caption{Desglose de las recompensas por el modo de manejares, mostrado en la terminal.}
+\end{figure}
+
+
+Al evaluar la política de esta manera se observan algunos problemas. Por un lado, existen posiciones que requieren que el robot contacte consigo mismo o con el suelo. Esto es un problema, pues puede inhabilitar el movimiento o dañar el robot. Por otro lado, al estar definido el movimiento del gripper como una de las acciones, este se debe tener en cuenta en la implementación, algo no deseado para esta tarea concreta. Como se espera poder implementar esta política en el robot real, en el próximo apartado se corregirá y mejorará el ejercicio para hacerlo apto para la utilización de la política.
 
 \section{Mejoras y correcciones}
 La implementación de este ejercicio se realizará en un robot UR3, con un gripper incluido. Por tanto, es importante obtener un modelo fiel a este robot; es decir, se debe tener en cuenta el gripper en el entrenamiento. Para ello, se ha utilizado un fichero .usd que contiene este gripper. En el proyecto general de este trabajo \api{ARMetaToolPG}, se puede encontrar este archivo en la carpeta \verb|source/ARMetaToolPG/data/ur3e|. No obstante, para este ejercicio de alcance, no se tiene en cuenta las acciones del gripper; es decir, no se estudia el agarre. Por ello, para facilitar el ejercicio y que la posición de la pinza no afecte a la política, se eliminan los accionamientos de cierre. De este modo, se obtiene un modelo que tiene en cuenta el gripper, sin que este afecte a las observaciones del posicionamiento. Para este modelo se crea una nueva configuración, mostrada en el siguiente código \ref{lst:UR3np}:
